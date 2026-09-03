@@ -1,0 +1,41 @@
+name: Atualiza Dados Compras PB
+
+on:
+  schedule:
+    # Executa toda segunda-feira à 1:00 AM (UTC)
+    - cron: '0 1 * * 1'
+  workflow_dispatch: # Permite rodar manualmente pelo GitHub
+
+jobs:
+  etl_compras:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+        
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v2
+        with:
+          version: "latest"
+          
+      - name: Instalar dependências
+        run: uv sync
+        
+      - name: Extrair Dados Incrementais (API)
+        run: |
+          # Rodamos o explorador com limite de páginas destravado (0) e a flag --incremental
+          # para pegar os dados apenas do ano corrente e deduplicar os CSVs.
+          uv run scripts/explora_api_compras_pb.py --limite-paginas 0 --incremental
+          
+      - name: Atualizar Banco de Dados (DuckDB)
+        run: |
+          uv run src/etl/build_db.py
+          
+      - name: Commit e Push das Alterações
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add data/raw/compras_pb/*.csv data/compras_pb.duckdb
+          git commit -m "chore(data): atualização incremental semanal das compras pb" || echo "Sem mudanças nos dados para commitar"
+          git push
