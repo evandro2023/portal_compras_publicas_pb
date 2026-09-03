@@ -1,0 +1,17 @@
+[project]
+name = "portal-compras-publica-pb"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Evandro", email = "evdrocha@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+portal-compras-publica-pb = "portal_compras_publica_pb:main"
+
+[build-system]
+requires = ["uv_build>=0.12.6,<0.13.0"]
+build-backend = "uv_build"
