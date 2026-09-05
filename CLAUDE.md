@@ -327,6 +327,8 @@ Como evolução importante do `scripts/coleta_leis.py`, implementar uma etapa de
 
 O resultado dessa busca deve ser salvo em `outputs/tables/candidatas_normas.csv`, contendo pelo menos: esfera, identificador, ano, título, tema detectado, URL, fonte, trecho/ementa e status de revisão. As normas candidatas devem passar por validação humana antes de entrar no catálogo curado, na matriz IAAN e no relatório final.
 
+Para automatizar o processo, o projeto agora prevê o desenvolvimento e uso de uma **Skill de Monitoramento de Leis**. Esta habilidade (`.agents/skills/monitoramento-leis`) será encarregada de extrair ativamente dados do *Sistema Gestor de Compras da Paraíba* (e outros diários oficiais), compará-los com o `catalogo_curado_leis.csv` e sugerir a incorporação de novos decretos que afetem as dinâmicas de teoria dos leilões e custos de transação na plataforma.
+
 Essa etapa é central para aumentar a qualidade do projeto, pois permite identificar atualizações recentes e normas relevantes não listadas inicialmente, sem comprometer a rastreabilidade e a consistência metodológica.
 
 ## Sugestões para implementação no projeto (Módulos Futuros)

@@ -71,7 +71,7 @@ if orgao_selecionado != "Todos":
     df_filtrado_contratos = df_filtrado_contratos[df_filtrado_contratos['nomeOrgao'] == orgao_selecionado]
 
 # --- ABAS (TABS) ---
-tab1, tab2 = st.tabs(["📊 Visão: Contratações (Licitações)", "📜 Detalhamento: Contratos Firmados"])
+tab1, tab2, tab3 = st.tabs(["📊 Visão: Contratações (Licitações)", "📜 Detalhamento: Contratos Firmados", "🏛️ Regulação e Teoria Econômica"])
 
 with tab1:
     st.markdown("### Panorama dos Processos de Contratação")
@@ -203,3 +203,44 @@ with tab2:
         }), 
         use_container_width=True
     )
+
+with tab3:
+    st.markdown("### 🏛️ Impacto Regulatório e Teoria Econômica")
+    st.markdown("Análise da aderência das compras à regulamentação estadual e federal, além das implicações econômicas.")
+    
+    st.markdown("---")
+    st.subheader("1. Aderência Federal x Estadual (PB)")
+    st.info("A Lei Federal 14.133/2021 estabelece normas gerais, mas delega aos Estados a regulamentação de procedimentos específicos. Abaixo, o mapeamento da regulamentação no Estado da Paraíba.")
+    
+    aderencia_data = {
+        "Tema (Lei Federal 14.133)": ["Fase Preparatória (Art. 18)", "Contratação Direta (Art. 72)", "Critério de Menor Preço (Art. 34)", "Execução Indireta (Art. 45)"],
+        "Regulamentação Estadual (PB)": ["Decreto 46.187/2025", "Decreto 41.200/2021 / ON 0001/2025", "IN SEAD 005/2023", "IN SEAD 007/2023"],
+        "Status de Aderência": ["Regulamentado", "Regulamentado", "Regulamentado", "Regulamentado"]
+    }
+    st.table(pd.DataFrame(aderencia_data))
+    
+    st.markdown("---")
+    st.subheader("2. Comparativo Regulatório: PB x SE")
+    st.info("Comparação de como diferentes estados regulamentam as mesmas diretrizes federais, impactando a eficiência das compras.")
+    
+    comp_data = {
+        "Critério Analisado": ["Regulamentação ME/EPP", "Pesquisa de Preços", "Sustentabilidade/Selo", "Fase Preparatória"],
+        "Paraíba (PB)": ["Lei 8.292/2007 / Decreto 32.056", "Decreto 42.967/2022", "Decreto 43.346 (Logística Reversa)", "Decreto 46.187/2025"],
+        "Sergipe (SE)": ["Lei 8.747/2020 / Lei 9.493/2024", "Pendente/Outro", "Decreto 622/623 (Selo Socioambiental)", "Decreto 567/2024 (Plano Anual)"]
+    }
+    st.table(pd.DataFrame(comp_data))
+    
+    st.markdown("---")
+    st.subheader("3. Teoria Econômica Aplicada")
+    st.info("Conexão entre as normativas implementadas e os conceitos de economia institucional e microeconomia.")
+    
+    col_t1, col_t2, col_t3 = st.columns(3)
+    with col_t1:
+        st.markdown("**📉 Custos de Transação**")
+        st.caption("A clareza na *Fase Preparatória (Dec. 46.187/2025)* reduz incertezas, diminuindo os custos de elaboração de propostas pelos fornecedores e os custos de fiscalização pelo Estado.")
+    with col_t2:
+        st.markdown("**⚖️ Problema Agente-Principal**")
+        st.caption("Normativas como a *IN SEAD 004/2023* (regras de licitação) e a exigência de transparência mitigam a assimetria de informação entre o servidor público (agente) e a sociedade (principal).")
+    with col_t3:
+        st.markdown("**🔨 Teoria dos Leilões**")
+        st.caption("A *IN SEAD 005/2023* (Menor Preço) estrutura os leilões reversos. Regras claras evitam a 'Maldição do Vencedor' e atraem maior competitividade.")

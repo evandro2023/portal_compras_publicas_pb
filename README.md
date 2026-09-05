@@ -64,7 +64,7 @@ Isso gerará o arquivo principal `data/compras_pb.duckdb` que alimentará o port
 - `/src/etl/`: Lógica de transformação e carga (`build_db.py`).
 - `/portal/`: Aplicação interativa web Streamlit (Painel Multipage).
   - `app.py`: Página inicial (Home) com apresentação e equipe.
-  - `pages/1_🛍️_Compras_Publicas.py`: Módulo 1 (Dashboard interativo conectado ao DuckDB com filtros de Ano e Órgão, focado em Contratações e Contratos).
+  - `pages/1_🛍️_Compras_Publicas.py`: Módulo 1 (Dashboard interativo conectado ao DuckDB focado em Contratações, Contratos e Análise de Impacto Regulatório/Econômico).
   - `pages/2_⚖️_Base_Legal.py`: Módulo 2 (Matrizes qualitativas de IAAN, Comparação PBxSE e Mapa de Calor de Aderência Teórica de Keynes/Furtado/Schumpeter).
 - `/documentacao/`: Referenciais teóricos e relatórios em PDF.
 - `/outputs/`: Tabelas, gráficos gerados, e arquivos de rastreio de logs.
