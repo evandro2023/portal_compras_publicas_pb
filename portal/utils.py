@@ -34,11 +34,11 @@ def render_sidebar_docs():
     st.sidebar.markdown("Acompanhe os referenciais e metodologias da pesquisa:")
     
     # Link direto para o PDF no repositório GitHub (ideal para a nuvem do Streamlit)
-    pdf_url = "https://github.com/EvandroFarias/portal_compras_publicas_pb/blob/main/documentacao/relatorio_compras_pb_gov.pdf"
+    pdf_url = "https://github.com/evandro2023/portal_compras_publicas_pb/blob/main/documentacao/relatorio_compras_pb_gov.pdf"
     st.sidebar.markdown(f"📄 [Relatório Analítico Metodológico (PDF)]({pdf_url})")
     
     # Link para o README
-    readme_url = "https://github.com/EvandroFarias/portal_compras_publicas_pb/blob/main/README.md"
+    readme_url = "https://github.com/evandro2023/portal_compras_publicas_pb/blob/main/README.md"
     st.sidebar.markdown(f"📖 [Visão Geral e Arquitetura (README)]({readme_url})")
 
 def render_custom_css():
