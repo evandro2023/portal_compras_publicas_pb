@@ -81,16 +81,13 @@ As tabelas do banco devem ser criadas com base nas APIs, seguindo a estrutura da
 
  O portal deve ser desenvolvido com streamlit e as consultas devem ser feitas de forma rápida. O portal deve ser capaz de responder as perguntas acima de forma interativa, permitindo filtros por ano, modalidade, órgão, fornecedor, tipo de objeto e tipo de bem ou serviço.
 
-* O portal deve ter as seguintes funcionalidades:
+* O portal deve ter as seguintes funcionalidades (Status Atualizado):
 
-- Página inicial com um resumo das compras públicas do estado da Paraíba;
-- Página de contratações por órgão;
-- Página de contratos por fornecedor;
-- Página de itens de contratações;
-- Página de plano anual de contratação;
-- Página de políticas públicas de desenvolvimento regional e transformação produtiva;
-- Página de instrumentos e mecanismos que possibilitam promover transformação produtiva;
-- Página de comparação com a legislação federal e estadual;
+- [x] Página inicial com um resumo do projeto e equipe;
+- [x] Página de Compras Públicas integrando dados de Contratações e Contratos por Órgão, Fornecedor e Modalidade (Dashboard iterativo em `1_🛍️_Compras_Publicas.py`);
+- [x] Página de Base Legal e Regulatória, contendo IAAN, Matriz Comparativa PBxSE, Mapa de Calor Teórico e Impactos Regionais (`2_⚖️_Base_Legal.py`);
+- [ ] Página de itens de contratações e plano anual de contratação;
+- [ ] Incorporação das bases CAGED e RAIS (Módulo 3 planejado).
 
 * Bibliotecas a serem utilizadas:
 
@@ -331,6 +328,17 @@ Como evolução importante do `scripts/coleta_leis.py`, implementar uma etapa de
 O resultado dessa busca deve ser salvo em `outputs/tables/candidatas_normas.csv`, contendo pelo menos: esfera, identificador, ano, título, tema detectado, URL, fonte, trecho/ementa e status de revisão. As normas candidatas devem passar por validação humana antes de entrar no catálogo curado, na matriz IAAN e no relatório final.
 
 Essa etapa é central para aumentar a qualidade do projeto, pois permite identificar atualizações recentes e normas relevantes não listadas inicialmente, sem comprometer a rastreabilidade e a consistência metodológica.
+
+## Sugestões para implementação no projeto (Módulos Futuros)
+
+A ideia do projeto é escalonar para os seguintes módulos:
+- **Base Legal compras públicas** (ok)
+- **Compras publicas da Paraíba** (ok)
+- **Rais**: Vínculos formais, massa salarial, escolaridade e ocupação por estabelecimento por município da Paraíba;
+- **Novo Caged**: Admissões e desligamentos formais por município da Paraíba;
+- **PIB e contas regionais**: PIB e contas regionais dos municípios da Paraiba;
+- **CEMPRE**: Empresas e unidades locais, pessoal ocupado por município da Paraíba;
+- **Comex Stat (MDIC)**: Exportações e importações por produtos, por município da Paraíba.
 
 
 ## Dependências

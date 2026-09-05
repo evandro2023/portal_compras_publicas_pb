@@ -62,6 +62,16 @@ Isso gerará o arquivo principal `data/compras_pb.duckdb` que alimentará o port
 - `/data/`: Base de dados, catálogo curado, DuckDB e CSVs brutos (`raw`).
 - `/scripts/`: Scripts utilitários de web scraping e consumo de APIs (`coleta_leis.py`, `explora_api_compras_pb.py`).
 - `/src/etl/`: Lógica de transformação e carga (`build_db.py`).
-- `/portal/`: Arquivos da aplicação interativa web Streamlit (Em breve).
-- `/documentacao/`: Referenciais teóricos e arquivos de apoio originais.
+- `/portal/`: Aplicação interativa web Streamlit (Painel Multipage).
+  - `app.py`: Página inicial (Home) com apresentação e equipe.
+  - `pages/1_🛍️_Compras_Publicas.py`: Módulo 1 (Dashboard interativo conectado ao DuckDB com filtros de Ano e Órgão, focado em Contratações e Contratos).
+  - `pages/2_⚖️_Base_Legal.py`: Módulo 2 (Matrizes qualitativas de IAAN, Comparação PBxSE e Mapa de Calor de Aderência Teórica de Keynes/Furtado/Schumpeter).
+- `/documentacao/`: Referenciais teóricos e relatórios em PDF.
 - `/outputs/`: Tabelas, gráficos gerados, e arquivos de rastreio de logs.
+
+## 📈 Status de Desenvolvimento
+
+- **[✓] Banco Analítico (DuckDB):** Estruturado com tabelas de compras e matrizes teóricas.
+- **[✓] Módulo 1 (Compras Públicas):** Implementado com leitura local (`read_only=True`) e painéis interativos.
+- **[✓] Módulo 2 (Base Legal):** Matrizes visuais complexas traduzidas em abas e gráficos de calor.
+- **[ ] Integração CAGED e RAIS:** Próximo passo para aprofundar impacto socioeconômico.
