@@ -226,18 +226,15 @@ with tab_associacao:
     st.markdown("### 🗺️ Origem Geográfica dos Fornecedores & Retenção Territorial de Renda")
     
     @st.cache_data(ttl=300)
-    def load_fornecedores_uf_data():
+    def load_fornecedores_uf_data(ano: int):
         conn = get_db_connection()
         tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
-        
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-        script_path = os.path.join(base_dir, "src", "etl", "enriquece_fornecedores_uf.py")
 
         if "dim_fornecedores_uf" not in tables:
             conn.close()
             return None, 0.0
 
-        query_uf = """
+        query_uf = f"""
             SELECT 
                 f.uf,
                 CASE WHEN f.uf = 'PB' THEN 'Paraíba (Retenção Local)' ELSE 'Outras UFs (Vazamento de Renda)' END as origem_tipo,
@@ -245,22 +242,25 @@ with tab_associacao:
                 SUM(c.valorTotal) as valor_total_contratado
             FROM dim_fornecedores_uf f
             JOIN contratos c ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = f.cnpj
+            WHERE c.ano_referencia = {ano} OR {ano} IS NULL
             GROUP BY f.uf, origem_tipo
             ORDER BY valor_total_contratado DESC
         """
         df_uf = conn.execute(query_uf).df()
 
-        pct_pb = conn.execute("""
+        pct_pb = conn.execute(f"""
             SELECT 
                 COALESCE(SUM(CASE WHEN f.uf = 'PB' THEN c.valorTotal ELSE 0 END) * 100.0 / NULLIF(SUM(c.valorTotal), 0), 0) as pct_retencao_pb
             FROM dim_fornecedores_uf f
             JOIN contratos c ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = f.cnpj
+            WHERE c.ano_referencia = {ano} OR {ano} IS NULL
         """).fetchone()[0]
 
         conn.close()
         return df_uf, float(pct_pb)
 
-    df_uf, pct_retencao = load_fornecedores_uf_data()
+    df_uf, pct_retencao = load_fornecedores_uf_data(ano_selecionado)
+
 
     if df_uf is not None and not df_uf.empty:
         col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
