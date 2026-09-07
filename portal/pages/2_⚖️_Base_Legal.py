@@ -15,31 +15,31 @@ st.markdown("Análise qualitativa e comparativa do arcabouço normativo de compr
 
 # --- DADOS ESTÁTICOS DO RELATÓRIO (Aba 1 e Aba 2) ---
 data_iaan = [
-    {"Tema": "Âmbito de aplicação da Lei 14.133", "Tipologia": "Reprodução Literal", "IAAN": 1.00},
-    {"Tema": "Pesquisa de preços", "Tipologia": "Adaptação Contextual", "IAAN": 0.75},
-    {"Tema": "Gestão e fiscalização contratual", "Tipologia": "Adaptação Contextual", "IAAN": 0.50},
-    {"Tema": "Credenciamento", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.25},
-    {"Tema": "Fase preparatória, ETP e TR", "Tipologia": "Adaptação Contextual", "IAAN": 0.50},
-    {"Tema": "Tratamento favorecido a ME/EPP", "Tipologia": "Adaptação Contextual", "IAAN": 0.50},
-    {"Tema": "Preferência regional", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.25},
-    {"Tema": "Startups e CPSI", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.00},
-    {"Tema": "Margem de preferência e compras sustentáveis", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.00},
-    {"Tema": "Alimentação escolar e PCT", "Tipologia": "Adaptação Contextual", "IAAN": 0.50},
-    {"Tema": "Diálogo competitivo", "Tipologia": "Reprodução Literal", "IAAN": 1.00},
-    {"Tema": "Estratégia nacional de compras sustentáveis", "Tipologia": "Adaptação Contextual", "IAAN": 0.50},
-    {"Tema": "Taxonomia sustentável aplicada", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.25},
-    {"Tema": "Adensamento produtivo no PAC", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.25}
+    {"Tema": "Âmbito de aplicação da Lei 14.133", "Tipologia": "Reprodução Literal", "IAAN": 1.00, "Norma": "Decreto Estadual 46.187/2025"},
+    {"Tema": "Pesquisa de preços", "Tipologia": "Adaptação Contextual", "IAAN": 0.75, "Norma": "Decreto Estadual 42.967/2022"},
+    {"Tema": "Gestão e fiscalização contratual", "Tipologia": "Adaptação Contextual", "IAAN": 0.50, "Norma": "IN SEAD 007/2023"},
+    {"Tema": "Credenciamento", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.25, "Norma": "Decreto 41.200/2021"},
+    {"Tema": "Fase preparatória, ETP e TR", "Tipologia": "Adaptação Contextual", "IAAN": 0.50, "Norma": "Decreto Estadual 46.187/2025"},
+    {"Tema": "Tratamento favorecido a ME/EPP", "Tipologia": "Adaptação Contextual", "IAAN": 0.50, "Norma": "Lei 8.292/2007"},
+    {"Tema": "Preferência regional", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.25, "Norma": "Decreto 32.056"},
+    {"Tema": "Startups e CPSI", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.00, "Norma": "Lei Complementar 182/2021"},
+    {"Tema": "Margem de preferência e compras sustentáveis", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.00, "Norma": "Decreto 43.346"},
+    {"Tema": "Alimentação escolar e PCT", "Tipologia": "Adaptação Contextual", "IAAN": 0.50, "Norma": "Regulamentação Específica PB"},
+    {"Tema": "Diálogo competitivo", "Tipologia": "Reprodução Literal", "IAAN": 1.00, "Norma": "Decreto Estadual 46.187/2025"},
+    {"Tema": "Estratégia nacional de compras sustentáveis", "Tipologia": "Adaptação Contextual", "IAAN": 0.50, "Norma": "Decreto 43.346"},
+    {"Tema": "Taxonomia sustentável aplicada", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.25, "Norma": "Decreto 43.346"},
+    {"Tema": "Adensamento produtivo no PAC", "Tipologia": "Complementação/Inovação Substantiva", "IAAN": 0.25, "Norma": "Decretos de Investimento Público"}
 ]
 df_iaan = pd.DataFrame(data_iaan)
 
 data_se = [
-    {"Tema": "Regulamentação geral da Lei nº 14.133", "Vantagem": "Sergipe", "Comparação": "Sergipe apresenta consolidação normativa mais concentrada por grandes objetos; Paraíba aparece com regulamentação mais modular por etapa/instrumento."},
-    {"Tema": "Pesquisa de preços e planejamento", "Vantagem": "Equilíbrio", "Comparação": "Paraíba tem maior detalhe temático em fase preparatória; Sergipe evidencia planejamento anual como instrumento de previsibilidade de demanda."},
-    {"Tema": "Tratamento favorecido a pequenos fornecedores", "Vantagem": "Sergipe", "Comparação": "Sergipe adota rol de beneficiários mais amplo e atualizado; Paraíba possui conexão explícita com desenvolvimento municipal/regional no decreto regulamentador."},
-    {"Tema": "Compras sustentáveis e critérios socioambientais", "Vantagem": "Equilíbrio", "Comparação": "Sergipe possui instrumentos explícitos e nomeados de compras sustentáveis; Paraíba tem maior conexão com logística reversa e cadeia de resíduos."},
-    {"Tema": "Inovação, TIC e soluções tecnológicas", "Vantagem": "Paraíba", "Comparação": "Paraíba tem marco estadual de CT&I mais substantivo; Sergipe vincula inovação à estrutura administrativa e ao planejamento das contratações."},
-    {"Tema": "Obras públicas, engenharia e BIM", "Vantagem": "Sergipe", "Comparação": "Sergipe apresenta avanço específico em engenharia, arquitetura e BIM, importante para custos, aditivos, produtividade e qualidade do investimento público."},
-    {"Tema": "Integridade e qualificação", "Vantagem": "Sergipe", "Comparação": "Sergipe possui camada específica de integridade empresarial; Paraíba enfatiza gestão e fiscalização contratual."}
+    {"Tema": "Regulamentação geral da Lei nº 14.133", "Normas_Comparadas": "PB: Decreto 46.187/25 | SE: Consolidação Geral", "Vantagem": "Sergipe", "Comparação": "Sergipe apresenta consolidação normativa mais concentrada por grandes objetos; Paraíba aparece com regulamentação mais modular por etapa/instrumento."},
+    {"Tema": "Pesquisa de preços e planejamento", "Normas_Comparadas": "PB: Decreto 42.967/22 | SE: Decreto 567/24", "Vantagem": "Equilíbrio", "Comparação": "Paraíba tem maior detalhe temático em fase preparatória; Sergipe evidencia planejamento anual como instrumento de previsibilidade de demanda."},
+    {"Tema": "Tratamento favorecido a pequenos fornecedores", "Normas_Comparadas": "PB: Lei 8.292/07 e Dec 32.056 | SE: Lei 8.747/20 e Lei 9.493/24", "Vantagem": "Sergipe", "Comparação": "Sergipe adota rol de beneficiários mais amplo e atualizado; Paraíba possui conexão explícita com desenvolvimento municipal/regional no decreto regulamentador."},
+    {"Tema": "Compras sustentáveis e critérios socioambientais", "Normas_Comparadas": "PB: Decreto 43.346 (Log. Reversa) | SE: Dec 622/623 (Selo)", "Vantagem": "Equilíbrio", "Comparação": "Sergipe possui instrumentos explícitos e nomeados de compras sustentáveis; Paraíba tem maior conexão com logística reversa e cadeia de resíduos."},
+    {"Tema": "Inovação, TIC e soluções tecnológicas", "Normas_Comparadas": "PB: LC 182/2021 | SE: Estrutura TIC", "Vantagem": "Paraíba", "Comparação": "Paraíba tem marco estadual de CT&I mais substantivo; Sergipe vincula inovação à estrutura administrativa e ao planejamento das contratações."},
+    {"Tema": "Obras públicas, engenharia e BIM", "Normas_Comparadas": "PB: Manuais Estaduais | SE: Normativas BIM", "Vantagem": "Sergipe", "Comparação": "Sergipe apresenta avanço específico em engenharia, arquitetura e BIM, importante para custos, aditivos, produtividade e qualidade do investimento público."},
+    {"Tema": "Integridade e qualificação", "Normas_Comparadas": "PB: IN SEAD | SE: Programa Integridade", "Vantagem": "Sergipe", "Comparação": "Sergipe possui camada específica de integridade empresarial; Paraíba enfatiza gestão e fiscalização contratual."}
 ]
 df_se = pd.DataFrame(data_se)
 
@@ -110,6 +110,13 @@ with tab1:
         )
         fig_tipo.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
         st.plotly_chart(fig_tipo, use_container_width=True)
+        
+        st.markdown("**Temas por Tipologia**")
+        st.dataframe(
+            df_iaan[['Tipologia', 'Tema', 'Norma']].sort_values(['Tipologia', 'Tema']),
+            use_container_width=True,
+            hide_index=True
+        )
 
     with col_g2:
         st.subheader("Integração Normativa por Eixo Temático")
@@ -139,7 +146,8 @@ with tab2:
         hide_index=True,
         column_config={
             "Tema": st.column_config.TextColumn("Eixo Temático", width="medium"),
-            "Vantagem": st.column_config.TextColumn("Vantagem Comparativa", width="small"),
+            "Normas_Comparadas": st.column_config.TextColumn("Normas Comparadas", width="medium"),
+            "Vantagem": st.column_config.TextColumn("Vantagem", width="small"),
             "Comparação": st.column_config.TextColumn("Leitura Interpretativa", width="large"),
         }
     )

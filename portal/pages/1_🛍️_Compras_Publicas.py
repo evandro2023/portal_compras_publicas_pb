@@ -141,6 +141,22 @@ with tab1:
     )
     fig_amparo.update_layout(yaxis={'categoryorder':'total ascending'})
     st.plotly_chart(fig_amparo, use_container_width=True)
+    
+    st.markdown("**Detalhamento por Base Normativa**")
+    df_amparo_table = df_filtrado_contratacoes.groupby('amparoLegal').agg(
+        Total_Projetos=('valorAdjudicado', 'count'),
+        Valor_Total=('valorAdjudicado', 'sum')
+    ).reset_index().rename(columns={'amparoLegal': 'Base Normativa'})
+    
+    df_amparo_table = df_amparo_table.sort_values('Valor_Total', ascending=False)
+    
+    st.dataframe(
+        df_amparo_table.style.format({
+            'Valor_Total': 'R$ {:,.2f}'
+        }),
+        use_container_width=True,
+        hide_index=True
+    )
 
 with tab2:
     st.markdown("### Análise de Fornecedores e Contratos Finalizados")
