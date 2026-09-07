@@ -67,7 +67,14 @@ def build_database():
     # Roda o enriquecimento por último
     aplicar_enriquecimento(DB_PATH)
     
+    try:
+        from enriquece_fornecedores_uf import enriquece_fornecedores_uf
+        enriquece_fornecedores_uf(DB_PATH, limit_cnpjs=0)
+    except Exception as e:
+        print(f"Aviso ao enriquecer fornecedores: {e}")
+    
     print("ETL concluído com sucesso!")
 
 if __name__ == "__main__":
     build_database()
+
