@@ -234,32 +234,41 @@ with tab_associacao:
             conn.close()
             return None, 0.0
 
+        # Query otimizada: recupera a lista por UF e o total global em uma única varredura acelerada
         query_uf = f"""
+            WITH base AS (
+                SELECT 
+                    f.uf,
+                    CASE WHEN f.uf = 'PB' THEN 'Paraíba (Retenção Local)' ELSE 'Outras UFs (Vazamento de Renda)' END as origem_tipo,
+                    f.cnpj,
+                    c.valorTotal
+                FROM dim_fornecedores_uf f
+                JOIN contratos c ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = f.cnpj
+                WHERE c.ano_referencia = {ano} OR {ano} IS NULL
+            )
             SELECT 
-                f.uf,
-                CASE WHEN f.uf = 'PB' THEN 'Paraíba (Retenção Local)' ELSE 'Outras UFs (Vazamento de Renda)' END as origem_tipo,
-                COUNT(DISTINCT f.cnpj) as num_empresas,
-                SUM(c.valorTotal) as valor_total_contratado
-            FROM dim_fornecedores_uf f
-            JOIN contratos c ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = f.cnpj
-            WHERE c.ano_referencia = {ano} OR {ano} IS NULL
-            GROUP BY f.uf, origem_tipo
+                uf,
+                origem_tipo,
+                COUNT(DISTINCT cnpj) as num_empresas,
+                SUM(valorTotal) as valor_total_contratado
+            FROM base
+            GROUP BY uf, origem_tipo
             ORDER BY valor_total_contratado DESC
         """
         df_uf = conn.execute(query_uf).df()
 
-        pct_pb = conn.execute(f"""
-            SELECT 
-                COALESCE(SUM(CASE WHEN f.uf = 'PB' THEN c.valorTotal ELSE 0 END) * 100.0 / NULLIF(SUM(c.valorTotal), 0), 0) as pct_retencao_pb
-            FROM dim_fornecedores_uf f
-            JOIN contratos c ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = f.cnpj
-            WHERE c.ano_referencia = {ano} OR {ano} IS NULL
-        """).fetchone()[0]
+        if not df_uf.empty:
+            total_geral = df_uf["valor_total_contratado"].sum()
+            total_pb = df_uf[df_uf["uf"] == "PB"]["valor_total_contratado"].sum() if "PB" in df_uf["uf"].values else 0
+            pct_pb = (total_pb * 100.0 / total_geral) if total_geral > 0 else 0.0
+        else:
+            pct_pb = 0.0
 
         conn.close()
         return df_uf, float(pct_pb)
 
     df_uf, pct_retencao = load_fornecedores_uf_data(ano_selecionado)
+
 
 
     if df_uf is not None and not df_uf.empty:

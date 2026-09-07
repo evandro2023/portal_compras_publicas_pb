@@ -119,7 +119,14 @@ def enriquece_fornecedores_uf(db_path: Path = DB_PATH, limit_cnpjs: int = 300) -
         conn.execute("CREATE OR REPLACE TABLE dim_fornecedores_uf AS SELECT * FROM df_final")
         print(f"\n✓ Tabela 'dim_fornecedores_uf' salva no DuckDB com {len(df_final)} fornecedores.")
 
+        # Salva em CSV na pasta data/processed para auditabilidade e exportação
+        csv_out = PROJECT_ROOT / "data" / "processed" / "dim_fornecedores_uf.csv"
+        csv_out.parent.mkdir(parents=True, exist_ok=True)
+        df_final.to_csv(csv_out, index=False, encoding="utf-8")
+        print(f"✓ Arquivo CSV exportado com sucesso: {csv_out}")
+
     conn.close()
+
 
 
 if __name__ == "__main__":
