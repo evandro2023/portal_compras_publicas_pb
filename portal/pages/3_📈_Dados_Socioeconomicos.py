@@ -277,19 +277,46 @@ with tab_associacao:
 
         col_uf1, col_uf2 = st.columns(2)
         
+        # Agrupa as Top 5 UFs e consolida o restante como "Outras UFs" para despoluir a rosca
+        df_top5 = df_uf.head(5).copy()
+        outras_val = df_uf.iloc[5:]["valor_total_contratado"].sum() if len(df_uf) > 5 else 0
+        outras_emp = df_uf.iloc[5:]["num_empresas"].sum() if len(df_uf) > 5 else 0
+        
+        if outras_val > 0:
+            df_pie = pd.concat([
+                df_top5,
+                pd.DataFrame([{
+                    "uf": "Outras UFs",
+                    "origem_tipo": "Outras UFs (Vazamento de Renda)",
+                    "num_empresas": outras_emp,
+                    "valor_total_contratado": outras_val
+                }])
+            ], ignore_index=True)
+        else:
+            df_pie = df_top5
+
         with col_uf1:
-            st.markdown("##### 📍 Distribuição de Compras por Estado (UF da Empresa)")
+            st.markdown("##### 📍 Distribuição de Compras por Estado (Top 5 UFs + Outras)")
             fig_uf_pie = px.pie(
-                df_uf,
+                df_pie,
                 names="uf",
                 values="valor_total_contratado",
-                color="origem_tipo",
-                color_discrete_map={"Paraíba (Retenção Local)": "#2ca02c", "Outras UFs (Vazamento de Renda)": "#d62728"},
                 hover_data=["num_empresas"],
                 labels={"uf": "Estado (UF)", "valor_total_contratado": "Valor Contratado (R$)", "num_empresas": "Empresas"},
+                color="uf",
+                color_discrete_map={
+                    "PB": "#2ca02c",      # Verde para Paraíba (Local)
+                    "SP": "#1f77b4",      # Azul para SP
+                    "PE": "#ff7f0e",      # Laranja para PE
+                    "CE": "#9467bd",      # Roxo para CE
+                    "RN": "#8c564b",      # Marrom para RN
+                    "Outras UFs": "#d62728" # Vermelho em destaque para Outras UFs
+                },
                 hole=0.4
             )
+            fig_uf_pie.update_traces(textinfo="percent+label")
             st.plotly_chart(fig_uf_pie, width="stretch")
+
 
         with col_uf2:
             st.markdown("##### 🏙️ Principais Estados de Origem dos Fornecedores")
