@@ -18,28 +18,8 @@ Análise dos microdados de movimentação de emprego formal (**Novo CAGED**) na 
 consolidado por município e agrupado por **Classe CNAE** e **Seção Econômica**.
 """)
 
-# Função cached para obter lista de tabelas e anos disponíveis no DuckDB
-@st.cache_data(ttl=300)
-def get_caged_metadata():
-    conn = get_db_connection()
-    tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
-    conn.close()
-
-    caged_tables = [t for t in tables if t.startswith("caged_pb_")]
-    return caged_tables
-
-try:
-    caged_tables = get_caged_metadata()
-except Exception as e:
-    st.error(f"Erro ao conectar ao banco de dados DuckDB: {e}")
-    st.stop()
-
-if not caged_tables:
-    st.warning("⚠️ Os dados do CAGED estão sendo processados e carregados no banco de dados. Por favor, recarregue a página em alguns instantes.")
-    st.info("Status da ingestão: Processando microdados de 2025 e 2026 em segundo plano...")
-    st.stop()
-
 # --- FILTROS LATERAIS ---
+
 st.sidebar.header("Filtros Analíticos")
 
 # Filtro de Nível CNAE
