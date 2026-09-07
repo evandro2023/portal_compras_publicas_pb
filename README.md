@@ -1,12 +1,12 @@
 # Portal Compras Públicas PB 📊
 
-Este projeto visa criar uma ferramenta analítica avançada para acompanhar e analisar as compras públicas realizadas pelo governo do Estado da Paraíba. O diferencial doO projeto é dividido em três grandes módulos (ETL / IA / Visualização):
+Este projeto visa criar uma ferramenta analítica avançada para acompanhar e analisar as compras públicas realizadas pelo governo do Estado da Paraíba. O projeto é dividido em três grandes módulos (ETL / IA / Visualização):
 
 1. **Coleta de Legislação (Catálogo Ouro)**: `scripts/coleta_leis.py` faz o parse e download automático das normas essenciais (Federal e Estadual) para cruzamento posterior.
 2. **Coleta de Dados de Compras**: `scripts/explora_api_compras_pb.py` varre as APIs governamentais (em modo exploratório ou incremental) e constrói as bases em CSV bruto.
 3. **Modelagem Econômica e Risco**: O script `src/etl/enriquecimento_socioeconomico.py` limpa textos e constrói um Star Schema com matrizes clássicas (Keynes, Furtado, Schumpeter) e análises de Risco Metodológico.
 4. **ETL e DuckDB (Analytics)**: `src/etl/build_db.py` transforma toda a massa de CSVs e cruzamentos de Teoria vs Gastos em uma base de dados local de alta velocidade (`compras_pb.duckdb`).
-5. **Automação (CI/CD)**: Integrado ao GitHub Actions para carga automática incremental toda semana.
+5. **Automação (CI/CD)**: Integrado ao GitHub Actions para carga automática incremental toda semana (com permissões corretas de escrita e executando em Node.js 24).
 - Cálculo do **IAAN (Índice de Aderência e Alinhamento Normativo)**.
 - Dashboard interativo desenvolvido em Streamlit, alimentado por um motor analítico DuckDB.
 
@@ -72,6 +72,6 @@ Isso gerará o arquivo principal `data/compras_pb.duckdb` que alimentará o port
 ## 📈 Status de Desenvolvimento
 
 - **[✓] Banco Analítico (DuckDB):** Estruturado com tabelas de compras e matrizes teóricas.
-- **[✓] Módulo 1 (Compras Públicas):** Implementado com leitura local (`read_only=True`) e painéis interativos.
-- **[✓] Módulo 2 (Base Legal):** Matrizes visuais complexas traduzidas em abas e gráficos de calor.
+- **[✓] Módulo 1 (Compras Públicas):** Implementado com leitura local (`read_only=True`) e painéis interativos com detalhamento tabular por Base Normativa.
+- **[✓] Módulo 2 (Base Legal):** Matrizes visuais complexas traduzidas em abas, gráficos de calor e tabelas detalhando as tipologias de leis e comparativo PB x SE.
 - **[ ] Integração CAGED e RAIS:** Próximo passo para aprofundar impacto socioeconômico.
