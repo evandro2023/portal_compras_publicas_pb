@@ -223,6 +223,91 @@ with tab_associacao:
 
 
     st.markdown("---")
+    st.markdown("### 🗺️ Origem Geográfica dos Fornecedores & Retenção Territorial de Renda")
+    
+    @st.cache_data(ttl=300)
+    def load_fornecedores_uf_data():
+        conn = get_db_connection()
+        tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
+        
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        script_path = os.path.join(base_dir, "src", "etl", "enriquece_fornecedores_uf.py")
+
+        if "dim_fornecedores_uf" not in tables:
+            conn.close()
+            return None, 0.0
+
+        query_uf = """
+            SELECT 
+                f.uf,
+                CASE WHEN f.uf = 'PB' THEN 'Paraíba (Retenção Local)' ELSE 'Outras UFs (Vazamento de Renda)' END as origem_tipo,
+                COUNT(DISTINCT f.cnpj) as num_empresas,
+                SUM(c.valorTotal) as valor_total_contratado
+            FROM dim_fornecedores_uf f
+            JOIN contratos c ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = f.cnpj
+            GROUP BY f.uf, origem_tipo
+            ORDER BY valor_total_contratado DESC
+        """
+        df_uf = conn.execute(query_uf).df()
+
+        pct_pb = conn.execute("""
+            SELECT 
+                COALESCE(SUM(CASE WHEN f.uf = 'PB' THEN c.valorTotal ELSE 0 END) * 100.0 / NULLIF(SUM(c.valorTotal), 0), 0) as pct_retencao_pb
+            FROM dim_fornecedores_uf f
+            JOIN contratos c ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = f.cnpj
+        """).fetchone()[0]
+
+        conn.close()
+        return df_uf, float(pct_pb)
+
+    df_uf, pct_retencao = load_fornecedores_uf_data()
+
+    if df_uf is not None and not df_uf.empty:
+        col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
+        
+        val_pb = df_uf[df_uf["uf"] == "PB"]["valor_total_contratado"].sum() if "PB" in df_uf["uf"].values else 0
+        val_outros = df_uf[df_uf["uf"] != "PB"]["valor_total_contratado"].sum()
+        
+        with col_kpi1:
+            st.metric("Taxa de Retenção Territorial (PB)", f"{pct_retencao:.1f}%", help="Percentual dos recursos de compras públicas que permanecem com fornecedores sediados na Paraíba")
+        with col_kpi2:
+            st.metric("Volume Retido na PB", f"R$ {val_pb:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+        with col_kpi3:
+            st.metric("Vazamento para Outras UFs", f"R$ {val_outros:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
+
+        col_uf1, col_uf2 = st.columns(2)
+        
+        with col_uf1:
+            st.markdown("##### 📍 Distribuição de Compras por Estado (UF da Empresa)")
+            fig_uf_pie = px.pie(
+                df_uf,
+                names="uf",
+                values="valor_total_contratado",
+                color="origem_tipo",
+                color_discrete_map={"Paraíba (Retenção Local)": "#2ca02c", "Outras UFs (Vazamento de Renda)": "#d62728"},
+                hover_data=["num_empresas"],
+                labels={"uf": "Estado (UF)", "valor_total_contratado": "Valor Contratado (R$)", "num_empresas": "Empresas"},
+                hole=0.4
+            )
+            st.plotly_chart(fig_uf_pie, width="stretch")
+
+        with col_uf2:
+            st.markdown("##### 🏙️ Principais Estados de Origem dos Fornecedores")
+            fig_uf_bar = px.bar(
+                df_uf.head(10),
+                x="uf",
+                y="valor_total_contratado",
+                color="origem_tipo",
+                text="valor_total_contratado",
+                color_discrete_map={"Paraíba (Retenção Local)": "#2ca02c", "Outras UFs (Vazamento de Renda)": "#1f77b4"},
+                labels={"uf": "UF do Fornecedor", "valor_total_contratado": "Valor Total Contratado (R$)"}
+            )
+            fig_uf_bar.update_traces(texttemplate='R$ %{text:,.2s}', textposition='outside')
+            st.plotly_chart(fig_uf_bar, width="stretch")
+    else:
+        st.info("Painel de retração territorial em sincronização...")
+
+    st.markdown("---")
     st.markdown("### 📊 Análise Interpretativa: Efeito do Gasto Público no Emprego Formal")
     
     st.markdown("""
@@ -244,6 +329,7 @@ with tab_associacao:
     > 💡 **Conclusão Metodológica para os Formuladores de Política**:
     > *Não basta avaliar o valor bruto licitado pelo Estado. É indispensável analisar o **multiplicador de emprego e a complexidade tecnológica** dos setores contratados para garantir que as compras públicas atuem verdadeiramente na transformação da estrutura produtiva da Paraíba.*
     """)
+
 
 
 with tab_mensal:
