@@ -8,3 +8,11 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Data & Database files (evita enviar dados volumosos ao Git / GitLab)
+data/
+*.duckdb
+*.parquet
+*.7z
+*.txt
+

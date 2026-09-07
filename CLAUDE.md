@@ -390,3 +390,14 @@ Relatórios:
 ## Histórico de Decisões Técnicas (Etapa 2)
 - **Modelagem Socioeconômica e Risco:** Criado o script `src/etl/enriquecimento_socioeconomico.py` para traduzir o PDF analítico em tabelas no DuckDB. Foram criadas as dimensões `dim_matriz_teorica` (Scores de Keynes, Furtado e Schumpeter) e `dim_impacto_regional` (Contendo Mecanismos, Reflexos e Riscos Metodológicos).
 - **Ponte Relacional:** Implementada a tabela `map_amparo_legal` e a view `vw_analise_socioeconomica` para limpar os amparos legais textuais sujos das APIs e vinculá-los às suas respectivas notas teóricas, permitindo calcular o valor adjudicado por impacto regional.
+
+## Histórico de Decisões Técnicas (Etapa 3 - Módulo de Dados Econômicos)
+- **Baixando e Consolidando Dados do CAGED PB:** Implementado o script `src/caged/ingest_caged.py` utilizando a biblioteca `pycaged` para extrair os microdados de movimentação de empregos da Paraíba (código de UF `25`) para os anos de 2025 e 2026 nos níveis de agregação CNAE (`secao`, `classe` e `subclasse`).
+- **Granularidade Essencial (Classe CNAE):** Garantido que o nível de `classe` (4 dígitos CNAE) seja baixado e consolidado para responder a requisitos de detalhamento econômico por atividade. Os dados são salvos de forma consolidada anual em arquivos `caged_pb_<nivel>_<ano>.csv` e `caged_pb_<nivel>_<ano>.parquet`.
+- **Carga no DuckDB & Mapeamento de Seção/Classe:** O arquivo auxiliar `src/caged/secao_classe.csv` é automaticamente importado para a tabela `caged_secao_classe` no DuckDB (`data/compras_pb.duckdb`) para permitir o cruzamento (`JOIN`) das classes do CAGED com seus nomes/descrições textuais.
+- **Otimização para GitLab e Streamlit Cloud:**
+  - **Repositório Git Leve:** Atualizado o `.gitignore` para proibir a inclusão da pasta `data/`, arquivos `.parquet`, `.duckdb`, `.csv` brutos e `.7z` no Git. Isso evita exceder limites de tamanho de repositório e acelera os pipelines no GitLab.
+  - **Eficiência de Memória (DuckDB + Parquet):** No portal Streamlit, os dados volumosos não serão carregados inteiramente na memória via Pandas. As consultas serão executadas como SQL streaming diretamente no DuckDB usando o formato compactado Parquet, retornando apenas os agregados necessários e prevenindo erros de estouro de memória (OOM).
+  - **Atualização Incremental Local e Guia de Migração Futura:** Criado a opção `--incremental` no script `src/caged/ingest_caged.py` e elaborado o guia completo em `documentacao/estrategia_ingestao_caged.md` ([estrategia_ingestao_caged.md](file:///home/sti-gii/Projetos/PythonProject/portal_compras_publica_pb/documentacao/estrategia_ingestao_caged.md)) orientando o agendamento local (crontab) e a futura arquitetura de produção em nuvem (GitLab CI/CD + Storage S3/Supabase).
+
+

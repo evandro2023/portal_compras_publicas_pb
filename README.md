@@ -1,20 +1,19 @@
 # Portal Compras Públicas PB 📊
 
-Este projeto visa criar uma ferramenta analítica avançada para acompanhar e analisar as compras públicas realizadas pelo governo do Estado da Paraíba. O projeto é dividido em três grandes módulos (ETL / IA / Visualização):
+Este projeto visa criar uma ferramenta analítica avançada para acompanhar e analisar as compras públicas realizadas pelo governo do Estado da Paraíba. O projeto é dividido em módulos integrados (ETL / Teoria Econômica / CAGED / Visualização Streamlit):
 
 1. **Coleta de Legislação (Catálogo Ouro)**: `scripts/coleta_leis.py` faz o parse e download automático das normas essenciais (Federal e Estadual) para cruzamento posterior.
 2. **Coleta de Dados de Compras**: `scripts/explora_api_compras_pb.py` varre as APIs governamentais (em modo exploratório ou incremental) e constrói as bases em CSV bruto.
 3. **Modelagem Econômica e Risco**: O script `src/etl/enriquecimento_socioeconomico.py` limpa textos e constrói um Star Schema com matrizes clássicas (Keynes, Furtado, Schumpeter) e análises de Risco Metodológico.
-4. **ETL e DuckDB (Analytics)**: `src/etl/build_db.py` transforma toda a massa de CSVs e cruzamentos de Teoria vs Gastos em uma base de dados local de alta velocidade (`compras_pb.duckdb`).
-5. **Automação (CI/CD)**: Integrado ao GitHub Actions para carga automática incremental toda semana (com permissões corretas de escrita e executando em Node.js 24).
-- Cálculo do **IAAN (Índice de Aderência e Alinhamento Normativo)**.
-- Dashboard interativo desenvolvido em Streamlit, alimentado por um motor analítico DuckDB.
+4. **Ingestão de Dados Econômicos (CAGED PB)**: `src/caged/ingest_caged.py` baixa e consolida os microdados formais de emprego da Paraíba (2025/2026) nos níveis CNAE de Seção, **Classe (4 dígitos)** e Subclasse, armazenando em Parquet e DuckDB.
+5. **ETL e DuckDB (Analytics)**: `src/etl/build_db.py` transforma toda a massa de CSVs e cruzamentos de Teoria vs Gastos em uma base de dados local de alta velocidade (`compras_pb.duckdb`).
+6. **Portal Web Streamlit (Multipage)**: Dashboard interativo com Módulo de Compras Públicas, Módulo de Base Legal e Módulo Socioeconômico com a **Matriz de Associação Compras x Saldo de Empregos**.
 
 ---
 
 ## 🚀 Como Executar o Projeto
 
-O projeto utiliza a ferramenta moderna `uv` para gestão ultrarrápida de dependências e ambientes virtuais, abandonando o `conda` ou `pip` manual.
+O projeto utiliza a ferramenta moderna `uv` para gestão ultrarrápida de dependências e ambientes virtuais.
 
 ### 1. Pré-requisitos
 - Tenha o [uv](https://docs.astral.sh/uv/) instalado na sua máquina.
@@ -24,54 +23,53 @@ Na raiz do projeto, instale todas as bibliotecas executando:
 ```bash
 uv sync
 ```
-Isso criará a pasta `.venv` automaticamente lendo o `pyproject.toml` ou `requirements.txt`.
+Isso criará a pasta `.venv` automaticamente lendo o `pyproject.toml`.
 
-### 3. Executando as Coletas de Dados (Etapa 1)
-
-O projeto foi dividido em camadas de dados (Pipeline ETL).
+### 3. Executando as Coletas e Ingestão de Dados
 
 **Passo A: Coletar a Legislação**
-Baixa os normativos listados no catálogo curado em `data/catalogo_curado_leis.csv`.
 ```bash
 uv run scripts/coleta_leis.py --baixar
 ```
 
 **Passo B: Extrair Dados da API da Paraíba**
-Consome os endpoints oficiais da Paraíba buscando contratos dos anos (2024, 2025, 2026).
-Para rodar em modo seguro (amostra de 2 páginas), use:
-```bash
-uv run scripts/explora_api_compras_pb.py --limite-paginas 2
-```
-Para rodar na base inteira, use:
 ```bash
 uv run scripts/explora_api_compras_pb.py --limite-paginas 0
 ```
-Os dados brutos serão salvos na pasta `data/raw/compras_pb/`.
 
-**Passo C: Construir o Banco de Dados (DuckDB)**
-Lê todos os CSVs brutos coletados e consolida na base de alta performance.
+**Passo C: Ingerir Microdados do CAGED (Paraíba)**
 ```bash
-uv run src/etl/build_db.py
+# Execução completa ou incremental (apenas novos meses)
+PYTHONPATH=. uv run python src/caged/ingest_caged.py --incremental
 ```
-Isso gerará o arquivo principal `data/compras_pb.duckdb` que alimentará o portal.
+
+**Passo D: Rodar a Aplicação Web no Streamlit**
+```bash
+PYTHONPATH=. uv run streamlit run portal/app.py
+```
 
 ---
 
 ## 🗂️ Estrutura de Diretórios
 
-- `/data/`: Base de dados, catálogo curado, DuckDB e CSVs brutos (`raw`).
+- `/data/`: Base de dados, catálogo curado, DuckDB e CSVs/Parquets brutos e processados (`raw` e `processed`).
 - `/scripts/`: Scripts utilitários de web scraping e consumo de APIs (`coleta_leis.py`, `explora_api_compras_pb.py`).
-- `/src/etl/`: Lógica de transformação e carga (`build_db.py`).
+- `/src/caged/`: Ingestão, tratamento e consolidação do Novo CAGED (`data.py`, `ingest_caged.py`, `secao_classe.csv`).
+- `/src/etl/`: Lógica de transformação e carga (`build_db.py`, `enriquecimento_socioeconomico.py`).
 - `/portal/`: Aplicação interativa web Streamlit (Painel Multipage).
-  - `app.py`: Página inicial (Home) com apresentação e equipe.
-  - `pages/1_🛍️_Compras_Publicas.py`: Módulo 1 (Dashboard interativo conectado ao DuckDB focado em Contratações, Contratos e Análise de Impacto Regulatório/Econômico).
-  - `pages/2_⚖️_Base_Legal.py`: Módulo 2 (Matrizes qualitativas de IAAN, Comparação PBxSE e Mapa de Calor de Aderência Teórica de Keynes/Furtado/Schumpeter).
-- `/documentacao/`: Referenciais teóricos e relatórios em PDF.
-- `/outputs/`: Tabelas, gráficos gerados, e arquivos de rastreio de logs.
+  - `app.py`: Página inicial (Home) com apresentação do projeto e equipe.
+  - `pages/1_🛍️_Compras_Publicas.py`: Módulo 1 (Dashboard de Contratações, Contratos e Fornecedores).
+  - `pages/2_⚖️_Base_Legal.py`: Módulo 2 (Matrizes de IAAN, Comparação PBxSE e Aderência Teórica).
+  - `pages/3_📈_Dados_Socioeconomicos.py`: Módulo 3 (Matriz de Associação Compras x Emprego, Evolução Mensal do CAGED e Rankings por Classe CNAE).
+- `/documentacao/`: Referenciais teóricos, relatórios em PDF e guia de ingestão do CAGED (`estrategia_ingestao_caged.md`).
+
+---
 
 ## 📈 Status de Desenvolvimento
 
-- **[✓] Banco Analítico (DuckDB):** Estruturado com tabelas de compras e matrizes teóricas.
-- **[✓] Módulo 1 (Compras Públicas):** Implementado com leitura local (`read_only=True`) e painéis interativos com detalhamento tabular por Base Normativa.
-- **[✓] Módulo 2 (Base Legal):** Matrizes visuais complexas traduzidas em abas, gráficos de calor e tabelas detalhando as tipologias de leis e comparativo PB x SE.
-- **[ ] Integração CAGED e RAIS:** Próximo passo para aprofundar impacto socioeconômico.
+- **[✓] Banco Analítico (DuckDB):** Estruturado com tabelas de compras, matrizes teóricas e séries históricas do CAGED.
+- **[✓] Módulo 1 (Compras Públicas):** Implementado com consultas SQL rápidas e painéis interativos.
+- **[✓] Módulo 2 (Base Legal):** Matrizes visuais de IAAN e comparativo PB x SE.
+- **[✓] Módulo 3 (Dados Econômicos - CAGED):** Mapeamento por Classe CNAE, Evolução Mensal e **Matriz de Associação entre Compras Públicas (R\$) e Saldo de Empregos**.
+- **[ ] Próximos Módulos:** Incorporação do PIB municipal e VAB (Valor Adicionado Bruto).
+
