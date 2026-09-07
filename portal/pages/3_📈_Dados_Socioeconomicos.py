@@ -61,9 +61,22 @@ def load_caged_data(tbl_name: str, nivel: str):
     conn = get_db_connection()
     tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
     
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    parquet_path = os.path.join(base_dir, "data", "processed", "caged", f"{tbl_name}.parquet")
+    secao_classe_csv = os.path.join(base_dir, "src", "caged", "secao_classe.csv")
+
+    # Se a tabela não existir no banco DuckDB em memória/disco, cria dinamicamente a partir dos Parquets
     if tbl_name not in tables:
-        conn.close()
-        return None
+        if os.path.exists(parquet_path):
+            conn.execute(f"CREATE TABLE IF NOT EXISTS {tbl_name} AS SELECT * FROM read_parquet('{parquet_path}')")
+            tables.append(tbl_name)
+        else:
+            conn.close()
+            return None
+
+    if "caged_secao_classe" not in tables and os.path.exists(secao_classe_csv):
+        conn.execute(f"CREATE TABLE IF NOT EXISTS caged_secao_classe AS SELECT LOWER(TRIM(secao)) as secao, TRIM(classe) as classe, TRIM(nome) as nome FROM read_csv('{secao_classe_csv}', sep=';', header=True)")
+        tables.append("caged_secao_classe")
 
     if nivel == "classe" and "caged_secao_classe" in tables:
         query = f"""
@@ -77,8 +90,6 @@ def load_caged_data(tbl_name: str, nivel: str):
     else:
         query = f"SELECT * FROM {tbl_name}"
 
-
-    
     df = conn.execute(query).df()
     conn.close()
     return df
@@ -87,8 +98,9 @@ with st.spinner("Carregando microdados do CAGED no DuckDB..."):
     df_caged = load_caged_data(table_name, nivel_selecionado)
 
 if df_caged is None or df_caged.empty:
-    st.info(f"Tabela `{table_name}` ainda não foi gerada ou está sendo carregada no banco DuckDB.")
+    st.info(f"Aguardando carregamento da tabela `{table_name}`.")
     st.stop()
+
 
 # Garantir coluna de saldo
 if "saldo" not in df_caged.columns and "Admitidos/Desligados" in df_caged.columns and "Count" in df_caged.columns:

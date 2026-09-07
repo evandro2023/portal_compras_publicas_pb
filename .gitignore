@@ -10,9 +10,12 @@ wheels/
 .venv
 
 # Data & Database files (evita enviar dados volumosos ao Git / GitLab)
-data/
+data/*
+!data/processed/
+!data/processed/caged/
+!data/processed/caged/*.parquet
 *.duckdb
-*.parquet
 *.7z
 *.txt
+
 
