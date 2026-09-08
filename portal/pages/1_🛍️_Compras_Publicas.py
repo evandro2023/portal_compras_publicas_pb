@@ -162,13 +162,15 @@ with tab2:
     st.markdown("### Análise de Fornecedores e Contratos Finalizados")
     
     # KPI Contratos
+    num_contratos = len(df_filtrado_contratos)
     num_fornecedores = df_filtrado_contratos['cnpjCpf'].nunique()
     valor_contratos = df_filtrado_contratos['valorTotal'].sum()
     valor_contratos_fmt = f"R$ {valor_contratos:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     
-    c1, c2 = st.columns(2)
+    c1, c2, c3 = st.columns(3)
     c1.metric(label="Volume Financeiro dos Contratos", value=valor_contratos_fmt)
-    c2.metric(label="Fornecedores Distintos", value=f"{num_fornecedores:,}".replace(",", "."))
+    c2.metric(label="Total de Contratos", value=f"{num_contratos:,}".replace(",", "."))
+    c3.metric(label="Fornecedores Distintos", value=f"{num_fornecedores:,}".replace(",", "."))
     
     st.markdown("---")
 
