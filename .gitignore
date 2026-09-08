@@ -14,6 +14,8 @@ data/*
 !data/processed/
 !data/processed/caged/
 !data/processed/caged/*.parquet
+data/processed/*.csv
+data/processed/caged/*.csv
 *.duckdb
 *.7z
 *.txt
