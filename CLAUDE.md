@@ -400,6 +400,10 @@ Relatórios:
   - **Repositório Git Leve:** Atualizado o `.gitignore` para proibir a inclusão de arquivos pesados, permitindo apenas os Parquets compactados leves do CAGED (`data/processed/caged/*.parquet`).
   - **Eficiência de Memória (DuckDB + Parquet):** No portal Streamlit, as consultas são executadas via SQL em streaming no DuckDB a partir dos Parquets, prevenindo estouros de memória (OOM).
   - **Atualização Incremental Local e Guia de Migração Futura:** Criada a opção `--incremental` e o guia `documentacao/estrategia_ingestao_caged.md` para orientação de agendamento no crontab e CI/CD.
+  - **Pré-Materialização e Otimização da Troca de Filtros (Performance de Renderização):**
+    - **Enriquecimento Direto de Parquets:** Adicionadas as colunas `nome_classe`, `codigo_secao` e o valor pré-calculado de `saldo` (`Admitidos/Desligados * Count`) diretamente nos Parquets do CAGED. Eliminou a necessidade de `TRY_CAST` / `JOIN` de 131.000+ linhas com `secao_classe.csv` em runtime ao alternar o filtro de ano.
+    - **Tabela Sumarizada `dim_contratacoes_macro`:** Pré-calcula os agrupamentos de compras públicas por *Macro Setor Econômico* (`F - Construção Civil`, `Q - Saúde`, `N - Serviços Admin/Limpeza`, `J - TI`, `H - Transporte`, etc.) no DuckDB via `src/caged/ingest_caged.py`, otimizando a rendering da *Matriz de Associação*.
+    - **Tabela Sumarizada `dim_fornecedores_uf_resumo`:** Pré-calcula a distribuição de contratos por UF e tipo de origem (`Retenção Local PB` vs `Vazamento para Outras UFs`), garantindo carregamento instantâneo do gráfico de rosca de retenção territorial e da tabela de resumo de fornecedores.
 
 
 
