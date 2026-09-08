@@ -65,7 +65,7 @@ def baixar_dados_caged(
 
 
 def carregar_caged_duckdb(db_path: str | Path = DB_PATH, caged_dir: str | Path = CAGED_DIR) -> None:
-    """Carrega os arquivos parquet do CAGED e o arquivo secao_classe.csv no DuckDB."""
+    """Carrega os arquivos parquet do CAGED e tabela secao_classe no DuckDB, e pre-calcula visões socioeconomicas."""
     db_path = Path(db_path)
     caged_dir = Path(caged_dir)
 
@@ -93,6 +93,60 @@ def carregar_caged_duckdb(db_path: str | Path = DB_PATH, caged_dir: str | Path =
             conn.execute(f"CREATE OR REPLACE TABLE {table_name} AS SELECT * FROM read_parquet('{pfile}')")
             count = conn.execute(f"SELECT COUNT(*) FROM {table_name}").fetchone()[0]
             print(f"  ✓ Tabela '{table_name}' criada com {count} registros.")
+
+    # 3. Pré-calcular tabelas de resumo para renderização instantânea no Portal
+    tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
+
+    if "contratacoes" in tables:
+        print("Pré-calculando tabela 'dim_contratacoes_macro'...")
+        conn.execute("""
+            CREATE OR REPLACE TABLE dim_contratacoes_macro AS
+            SELECT 
+                ano_referencia,
+                CASE 
+                    WHEN LOWER(objeto) LIKE '%obra%' OR LOWER(objeto) LIKE '%construc%' OR LOWER(objeto) LIKE '%engenhar%' THEN 'F - Construção Civil'
+                    WHEN LOWER(objeto) LIKE '%saude%' OR LOWER(objeto) LIKE '%medicament%' OR LOWER(objeto) LIKE '%hospital%' OR LOWER(objeto) LIKE '%tomograf%' OR LOWER(objeto) LIKE '%medico%' THEN 'Q - Saúde e Serviços Sociais'
+                    WHEN LOWER(objeto) LIKE '%limpeza%' OR LOWER(objeto) LIKE '%vigilanc%' OR LOWER(objeto) LIKE '%seguranc%' OR LOWER(objeto) LIKE '%conservac%' THEN 'N - Serviços Admin / Vigilância / Limpeza'
+                    WHEN LOWER(objeto) LIKE '%veicul%' OR LOWER(objeto) LIKE '%transporte%' OR LOWER(objeto) LIKE '%combustiv%' THEN 'H - Transporte e Logística'
+                    WHEN LOWER(objeto) LIKE '%tecnologia%' OR LOWER(objeto) LIKE '%software%' OR LOWER(objeto) LIKE '%informatica%' OR LOWER(objeto) LIKE '%sistema%' THEN 'J - Informação e Comunicação (TI)'
+                    WHEN LOWER(objeto) LIKE '%alimento%' OR LOWER(objeto) LIKE '%merenda%' OR LOWER(objeto) LIKE '%refeic%' THEN 'C - Indústria / Alimentação'
+                    ELSE 'G - Comércio Varejista/Atacadista & Serviços Diversos'
+                END AS macro_setor,
+                COUNT(*) as total_contratacoes,
+                SUM(valorAdjudicado) as total_compras
+            FROM contratacoes
+            WHERE valorAdjudicado IS NOT NULL
+            GROUP BY ano_referencia, macro_setor
+        """)
+        print("  ✓ Tabela 'dim_contratacoes_macro' criada.")
+
+    if "dim_fornecedores_uf" in tables and "contratos" in tables:
+        print("Pré-calculando tabela 'dim_fornecedores_uf_resumo'...")
+        conn.execute("""
+            CREATE OR REPLACE TABLE dim_fornecedores_uf_resumo AS
+            WITH base AS (
+                SELECT 
+                    c.ano_referencia,
+                    f.uf,
+                    CASE WHEN f.uf = 'PB' THEN 'Paraíba (Retenção Local)' ELSE 'Outras UFs (Vazamento de Renda)' END as origem_tipo,
+                    f.cnpj,
+                    c.valorTotal
+                FROM dim_fornecedores_uf f
+                JOIN (
+                    SELECT REGEXP_REPLACE(cnpjCpf, '[^0-9]', '', 'g') as cnpj, valorTotal, ano_referencia
+                    FROM contratos
+                ) c ON c.cnpj = f.cnpj
+            )
+            SELECT 
+                ano_referencia,
+                uf,
+                origem_tipo,
+                COUNT(DISTINCT cnpj) as num_empresas,
+                SUM(valorTotal) as valor_total_contratado
+            FROM base
+            GROUP BY ano_referencia, uf, origem_tipo
+        """)
+        print("  ✓ Tabela 'dim_fornecedores_uf_resumo' criada.")
 
     print("\n--- Tabelas no DuckDB ---")
     tables = conn.execute("SHOW TABLES").fetchall()

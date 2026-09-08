@@ -43,9 +43,8 @@ def load_caged_data(tbl_name: str, nivel: str):
     
     base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     parquet_path = os.path.join(base_dir, "data", "processed", "caged", f"{tbl_name}.parquet")
-    secao_classe_csv = os.path.join(base_dir, "src", "caged", "secao_classe.csv")
 
-    # Se a tabela não existir no banco DuckDB em memória/disco, cria dinamicamente a partir dos Parquets
+    # Se a tabela não existir no banco DuckDB em memória/disco, cria dinamicamente a partir do Parquet
     if tbl_name not in tables:
         if os.path.exists(parquet_path):
             conn.execute(f"CREATE TABLE IF NOT EXISTS {tbl_name} AS SELECT * FROM read_parquet('{parquet_path}')")
@@ -54,19 +53,26 @@ def load_caged_data(tbl_name: str, nivel: str):
             conn.close()
             return None
 
-    if "caged_secao_classe" not in tables and os.path.exists(secao_classe_csv):
-        conn.execute(f"CREATE TABLE IF NOT EXISTS caged_secao_classe AS SELECT LOWER(TRIM(secao)) as secao, TRIM(classe) as classe, TRIM(nome) as nome FROM read_csv('{secao_classe_csv}', sep=';', header=True)")
-        tables.append("caged_secao_classe")
+    # Se a tabela ainda não tiver a coluna nome_classe e for nível classe, realiza JOIN leve com a tabela auxiliar
+    columns = [c[0] for c in conn.execute(f"DESCRIBE {tbl_name}").fetchall()]
+    
+    if nivel == "classe" and "nome_classe" not in columns:
+        secao_classe_csv = os.path.join(base_dir, "src", "caged", "secao_classe.csv")
+        if "caged_secao_classe" not in tables and os.path.exists(secao_classe_csv):
+            conn.execute(f"CREATE TABLE IF NOT EXISTS caged_secao_classe AS SELECT LOWER(TRIM(secao)) as secao, TRIM(classe) as classe, TRIM(nome) as nome FROM read_csv('{secao_classe_csv}', sep=';', header=True)")
+            tables.append("caged_secao_classe")
 
-    if nivel == "classe" and "caged_secao_classe" in tables:
-        query = f"""
-            SELECT 
-                c.*,
-                COALESCE(s.nome, 'Classe ' || CAST(TRY_CAST(c."Classe" AS BIGINT) AS VARCHAR)) AS nome_classe,
-                s.secao AS codigo_secao
-            FROM {tbl_name} c
-            LEFT JOIN caged_secao_classe s ON CAST(TRY_CAST(c."Classe" AS BIGINT) AS VARCHAR) = s.classe
-        """
+        if "caged_secao_classe" in tables:
+            query = f"""
+                SELECT 
+                    c.*,
+                    COALESCE(s.nome, 'Classe ' || CAST(TRY_CAST(c."Classe" AS BIGINT) AS VARCHAR)) AS nome_classe,
+                    s.secao AS codigo_secao
+                FROM {tbl_name} c
+                LEFT JOIN caged_secao_classe s ON CAST(TRY_CAST(c."Classe" AS BIGINT) AS VARCHAR) = s.classe
+            """
+        else:
+            query = f"SELECT * FROM {tbl_name}"
     else:
         query = f"SELECT * FROM {tbl_name}"
 
@@ -125,30 +131,37 @@ with tab_associacao:
     @st.cache_data(ttl=300)
     def load_caged_compras_correlation(ano: int):
         conn = get_db_connection()
+        tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
         
-        # 1. Agrupamento de compras por Macro Setor Econômico
-        query_compras_macro = f"""
-            SELECT 
-                CASE 
-                    WHEN LOWER(objeto) LIKE '%obra%' OR LOWER(objeto) LIKE '%construc%' OR LOWER(objeto) LIKE '%engenhar%' THEN 'F - Construção Civil'
-                    WHEN LOWER(objeto) LIKE '%saude%' OR LOWER(objeto) LIKE '%medicament%' OR LOWER(objeto) LIKE '%hospital%' OR LOWER(objeto) LIKE '%tomograf%' OR LOWER(objeto) LIKE '%medico%' THEN 'Q - Saúde e Serviços Sociais'
-                    WHEN LOWER(objeto) LIKE '%limpeza%' OR LOWER(objeto) LIKE '%vigilanc%' OR LOWER(objeto) LIKE '%seguranc%' OR LOWER(objeto) LIKE '%conservac%' THEN 'N - Serviços Admin / Vigilância / Limpeza'
-                    WHEN LOWER(objeto) LIKE '%veicul%' OR LOWER(objeto) LIKE '%transporte%' OR LOWER(objeto) LIKE '%combustiv%' THEN 'H - Transporte e Logística'
-                    WHEN LOWER(objeto) LIKE '%tecnologia%' OR LOWER(objeto) LIKE '%software%' OR LOWER(objeto) LIKE '%informatica%' OR LOWER(objeto) LIKE '%sistema%' THEN 'J - Informação e Comunicação (TI)'
-                    WHEN LOWER(objeto) LIKE '%alimento%' OR LOWER(objeto) LIKE '%merenda%' OR LOWER(objeto) LIKE '%refeic%' THEN 'C - Indústria / Alimentação'
-                    ELSE 'G - Comércio Varejista/Atacadista & Serviços Diversos'
-                END AS macro_setor,
-                COUNT(*) as total_contratacoes,
-                SUM(valorAdjudicado) as total_compras
-            FROM contratacoes
-            WHERE (ano_referencia = {ano} OR {ano} IS NULL) AND valorAdjudicado IS NOT NULL
-            GROUP BY macro_setor
-        """
+        # 1. Agrupamento de compras por Macro Setor Econômico (Usando dim_contratacoes_macro se disponível)
+        if "dim_contratacoes_macro" in tables:
+            query_compras_macro = f"""
+                SELECT macro_setor, total_contratacoes, total_compras
+                FROM dim_contratacoes_macro
+                WHERE (ano_referencia = {ano} OR {ano} IS NULL)
+            """
+        else:
+            query_compras_macro = f"""
+                SELECT 
+                    CASE 
+                        WHEN LOWER(objeto) LIKE '%obra%' OR LOWER(objeto) LIKE '%construc%' OR LOWER(objeto) LIKE '%engenhar%' THEN 'F - Construção Civil'
+                        WHEN LOWER(objeto) LIKE '%saude%' OR LOWER(objeto) LIKE '%medicament%' OR LOWER(objeto) LIKE '%hospital%' OR LOWER(objeto) LIKE '%tomograf%' OR LOWER(objeto) LIKE '%medico%' THEN 'Q - Saúde e Serviços Sociais'
+                        WHEN LOWER(objeto) LIKE '%limpeza%' OR LOWER(objeto) LIKE '%vigilanc%' OR LOWER(objeto) LIKE '%seguranc%' OR LOWER(objeto) LIKE '%conservac%' THEN 'N - Serviços Admin / Vigilância / Limpeza'
+                        WHEN LOWER(objeto) LIKE '%veicul%' OR LOWER(objeto) LIKE '%transporte%' OR LOWER(objeto) LIKE '%combustiv%' THEN 'H - Transporte e Logística'
+                        WHEN LOWER(objeto) LIKE '%tecnologia%' OR LOWER(objeto) LIKE '%software%' OR LOWER(objeto) LIKE '%informatica%' OR LOWER(objeto) LIKE '%sistema%' THEN 'J - Informação e Comunicação (TI)'
+                        WHEN LOWER(objeto) LIKE '%alimento%' OR LOWER(objeto) LIKE '%merenda%' OR LOWER(objeto) LIKE '%refeic%' THEN 'C - Indústria / Alimentação'
+                        ELSE 'G - Comércio Varejista/Atacadista & Serviços Diversos'
+                    END AS macro_setor,
+                    COUNT(*) as total_contratacoes,
+                    SUM(valorAdjudicado) as total_compras
+                FROM contratacoes
+                WHERE (ano_referencia = {ano} OR {ano} IS NULL) AND valorAdjudicado IS NOT NULL
+                GROUP BY macro_setor
+            """
         df_compras_macro = conn.execute(query_compras_macro).df()
 
         # 2. Agrupamento de saldo de empregos do CAGED por Seção correspondente
         caged_table = f"caged_pb_secao_{ano}"
-        tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
         
         if caged_table in tables:
             query_caged_secao = f"""
@@ -230,31 +243,42 @@ with tab_associacao:
         conn = get_db_connection()
         tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
 
-        if "dim_fornecedores_uf" not in tables:
+        if "dim_fornecedores_uf_resumo" in tables:
+            query_uf = f"""
+                SELECT 
+                    uf,
+                    origem_tipo,
+                    num_empresas,
+                    valor_total_contratado
+                FROM dim_fornecedores_uf_resumo
+                WHERE ano_referencia = {ano} OR {ano} IS NULL
+                ORDER BY valor_total_contratado DESC
+            """
+        elif "dim_fornecedores_uf" in tables:
+            query_uf = f"""
+                WITH base AS (
+                    SELECT 
+                        f.uf,
+                        CASE WHEN f.uf = 'PB' THEN 'Paraíba (Retenção Local)' ELSE 'Outras UFs (Vazamento de Renda)' END as origem_tipo,
+                        f.cnpj,
+                        c.valorTotal
+                    FROM dim_fornecedores_uf f
+                    JOIN contratos c ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = f.cnpj
+                    WHERE c.ano_referencia = {ano} OR {ano} IS NULL
+                )
+                SELECT 
+                    uf,
+                    origem_tipo,
+                    COUNT(DISTINCT cnpj) as num_empresas,
+                    SUM(valorTotal) as valor_total_contratado
+                FROM base
+                GROUP BY uf, origem_tipo
+                ORDER BY valor_total_contratado DESC
+            """
+        else:
             conn.close()
             return None, 0.0
 
-        # Query otimizada: recupera a lista por UF e o total global em uma única varredura acelerada
-        query_uf = f"""
-            WITH base AS (
-                SELECT 
-                    f.uf,
-                    CASE WHEN f.uf = 'PB' THEN 'Paraíba (Retenção Local)' ELSE 'Outras UFs (Vazamento de Renda)' END as origem_tipo,
-                    f.cnpj,
-                    c.valorTotal
-                FROM dim_fornecedores_uf f
-                JOIN contratos c ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = f.cnpj
-                WHERE c.ano_referencia = {ano} OR {ano} IS NULL
-            )
-            SELECT 
-                uf,
-                origem_tipo,
-                COUNT(DISTINCT cnpj) as num_empresas,
-                SUM(valorTotal) as valor_total_contratado
-            FROM base
-            GROUP BY uf, origem_tipo
-            ORDER BY valor_total_contratado DESC
-        """
         df_uf = conn.execute(query_uf).df()
 
         if not df_uf.empty:
