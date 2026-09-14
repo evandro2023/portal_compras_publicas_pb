@@ -21,6 +21,7 @@ with col3:
     st.image("fig/logo_sudene.png", width=180)
 
 # --- Apresentação ---
+st.markdown("<hr style='border-top: 3px solid #ff7f0e; margin-top: 0; margin-bottom: 20px;'>", unsafe_allow_html=True)
 
 st.markdown("""
 <br><br>
@@ -74,7 +75,7 @@ with col3:
             <div class="nav-card-text">
                 Módulos integrados com CAGED, RAIS, PIB e Comex Stat para cruzamento das compras governamentais com a realidade econômica local.
             </div>
-            <a href="/Dados_Socioeconomicos" target="_self" class="nav-card-button">Em Breve</a>
+            <a href="/Dados_Socioeconomicos" target="_self" class="nav-card-button">Explorar Módulo</a>
         </div>
     """, unsafe_allow_html=True)
 

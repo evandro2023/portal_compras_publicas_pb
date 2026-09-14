@@ -15,6 +15,9 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
+# Adiciona a raiz do projeto ao sys.path para permitir importação do pacote 'src'
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+
 from src.caged.data import PROCESSED_DIR, PROJECT_ROOT, baixar_caged_municipios_pb
 
 DB_PATH = PROJECT_ROOT / "data" / "compras_pb.duckdb"

@@ -38,6 +38,6 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add data/raw/compras_pb/*.csv data/compras_pb.duckdb
+          git add -f data/raw/compras_pb/*.csv data/compras_pb.duckdb
           git commit -m "chore(data): atualização incremental semanal das compras pb" || echo "Sem mudanças nos dados para commitar"
           git push

@@ -12,6 +12,7 @@ from utils import set_page_config, get_db_connection, render_sidebar_docs
 set_page_config("Módulo de Compras Públicas")
 render_sidebar_docs()
 st.title("🛍️ Compras Públicas: Painel Exploratório")
+st.markdown("<hr style='border-top: 3px solid #ff7f0e; margin-top: 0; margin-bottom: 20px;'>", unsafe_allow_html=True)
 st.markdown("Análise interativa das contratações e contratos firmados pelo Governo do Estado.")
 
 # Conecta ao banco de dados e carrega dados base
