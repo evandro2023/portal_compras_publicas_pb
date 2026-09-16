@@ -43,17 +43,16 @@ st.subheader("Nossos Módulos Analíticos")
 st.write("Selecione um dos painéis abaixo para explorar os dados:")
 
 # --- Layout de Cards (Hub) ---
-# Usaremos HTML injetado para criar os cards funcionais
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     st.markdown("""
         <div class="nav-card">
             <div class="nav-card-title">🛍️ Compras Públicas PB</div>
             <div class="nav-card-text">
-                Análise aprofundada dos contratos, contratações e itens adquiridos pelo Estado da Paraíba, destacando fornecedores e valores.
+                Análise aprofundada dos contratos, contratações e itens adquiridos pelo Estado da Paraíba.
             </div>
-            <a href="/Compras_Publicas" target="_self" class="nav-card-button">Explorar Módulo</a>
+            <a href="/Compras_Publicas" target="_self" class="nav-card-button">Explorar</a>
         </div>
     """, unsafe_allow_html=True)
 
@@ -62,9 +61,9 @@ with col2:
         <div class="nav-card">
             <div class="nav-card-title">⚖️ Base Legal e Regulatória</div>
             <div class="nav-card-text">
-                Comparação e mapeamento da legislação (Paraíba, Sergipe e Federal) para identificar mecanismos de fomento produtivo e sustentável.
+                Comparação e mapeamento da legislação (Paraíba, Sergipe e Federal) para identificar mecanismos de fomento.
             </div>
-            <a href="/Base_Legal" target="_self" class="nav-card-button">Explorar Módulo</a>
+            <a href="/Base_Legal" target="_self" class="nav-card-button">Explorar</a>
         </div>
     """, unsafe_allow_html=True)
 
@@ -73,11 +72,28 @@ with col3:
         <div class="nav-card">
             <div class="nav-card-title">📈 Dados Socioeconômicos</div>
             <div class="nav-card-text">
-                Módulos integrados com CAGED, RAIS, PIB e Comex Stat para cruzamento das compras governamentais com a realidade econômica local.
+                Módulos integrados com CAGED, RAIS, PIB e Comex Stat para cruzamento com a realidade econômica local.
             </div>
-            <a href="/Dados_Socioeconomicos" target="_self" class="nav-card-button">Explorar Módulo</a>
+            <a href="/Dados_Socioeconomicos" target="_self" class="nav-card-button">Explorar</a>
+        </div>
+    """, unsafe_allow_html=True)
+
+with col4:
+    st.markdown("""
+        <div class="nav-card">
+            <div class="nav-card-title">📝 Curadoria Manual</div>
+            <div class="nav-card-text">
+                Módulo restrito para revisão, triagem e aprovação de novas leis e decretos identificados.
+            </div>
+            <a href="/Curadoria_Manual" target="_self" class="nav-card-button">Acessar</a>
         </div>
     """, unsafe_allow_html=True)
 
 st.markdown("<br><hr>", unsafe_allow_html=True)
-st.caption("Desenvolvido para o projeto 'Portal Compras Públicas PB'.")
+st.markdown("""
+<div style="text-align: center; color: #6c757d; font-size: 0.85rem;">
+    <p><b>Portal de Inteligência: Compras Públicas e Desenvolvimento Regional na Paraíba</b></p>
+    <p>© 2026 Prof. Dr. Paulo Fernando Cavalcanti & Evandro Farias Rocha (UFPB / SUDENE). Licença Open Source (MIT).</p>
+    <p>🤖 <i>Desenvolvimento computacional e engenharia de dados auxiliados por Agentes de Inteligência Artificial (Google Gemini Agentic Coding).</i></p>
+</div>
+""", unsafe_allow_html=True)

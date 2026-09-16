@@ -40,6 +40,10 @@ def render_sidebar_docs():
     # Link para o README
     readme_url = "https://github.com/evandro2023/portal_compras_publicas_pb/blob/main/README.md"
     st.sidebar.markdown(f"📖 [Visão Geral e Arquitetura (README)]({readme_url})")
+    
+    st.sidebar.markdown("---")
+    st.sidebar.caption("© 2026 Portal Compras Públicas PB. Licença MIT.")
+    st.sidebar.caption("🤖 *Desenvolvimento auxiliado por Agentes de IA (Google Gemini).*")
 
 def render_custom_css():
     """

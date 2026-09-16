@@ -86,8 +86,9 @@ As tabelas do banco devem ser criadas com base nas APIs, seguindo a estrutura da
 - [x] Página inicial com um resumo do projeto e equipe;
 - [x] Página de Compras Públicas integrando dados de Contratações e Contratos por Órgão, Fornecedor e Modalidade (Dashboard iterativo em `1_🛍️_Compras_Publicas.py`);
 - [x] Página de Base Legal e Regulatória, contendo IAAN, Matriz Comparativa PBxSE, Mapa de Calor Teórico e Impactos Regionais (`2_⚖️_Base_Legal.py`);
-- [ ] Página de itens de contratações e plano anual de contratação;
-- [ ] Incorporação das bases CAGED e RAIS (Módulo 3 planejado).
+- [x] Módulo de Dados Socioeconômicos integrando CAGED e retenção de renda (`3_📈_Dados_Socioeconomicos.py`);
+- [x] Módulo de Curadoria/Manual com login/senha e validação normativa (`4_📝_Curadoria_Manual.py`);
+- [ ] Página de itens de contratações e plano anual de contratação.
 
 * Bibliotecas a serem utilizadas:
 
@@ -327,9 +328,9 @@ Como evolução importante do `scripts/coleta_leis.py`, implementar uma etapa de
 
 O resultado dessa busca deve ser salvo em `outputs/tables/candidatas_normas.csv`, contendo pelo menos: esfera, identificador, ano, título, tema detectado, URL, fonte, trecho/ementa e status de revisão. As normas candidatas devem passar por validação humana antes de entrar no catálogo curado, na matriz IAAN e no relatório final.
 
-Para automatizar o processo, o projeto agora prevê o desenvolvimento e uso de uma **Skill de Monitoramento de Leis**. Esta habilidade (`.agents/skills/monitoramento-leis`) será encarregada de extrair ativamente dados do *Sistema Gestor de Compras da Paraíba* (e outros diários oficiais), compará-los com o `catalogo_curado_leis.csv` e sugerir a incorporação de novos decretos que afetem as dinâmicas de teoria dos leilões e custos de transação na plataforma.
+Para automatizar o processo, o projeto prevê o desenvolvimento e uso de uma **Skill de Monitoramento de Leis**. Esta habilidade (`.agents/skills/monitoramento-leis`) é encarregada de extrair ativamente dados do *Sistema Gestor de Compras da Paraíba* (e outros diários oficiais), compará-los com o `catalogo_curado_leis.csv` e sugerir a incorporação de novos decretos que afetem as dinâmicas de teoria dos leilões e custos de transação na plataforma.
 
-Essa etapa é central para aumentar a qualidade do projeto, pois permite identificar atualizações recentes e normas relevantes não listadas inicialmente, sem comprometer a rastreabilidade e a consistência metodológica.
+As normas sugeridas são disponibilizadas no **Módulo 4 (Curadoria/Manual)** (`portal/pages/4_📝_Curadoria_Manual.py`), onde o curador autenticado (usuário: `curador`) pode revisar a ementa, definir o status ("A ser revisado", "revisando", "revisada") e aprovar a incorporação definitiva no `catalogo_curado_leis.csv`.
 
 ## Sugestões para implementação no projeto (Módulos Futuros)
 

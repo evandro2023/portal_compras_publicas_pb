@@ -1,4 +1,5 @@
 import duckdb
+import os
 import pandas as pd
 
 def gerar_dim_matriz_teorica():
@@ -48,38 +49,60 @@ def gerar_dim_impacto_regional():
     return pd.DataFrame(data)
 
 def gerar_map_amparo_legal(conn):
-    """Lê as strings sujas da coluna amparoLegal e mapeia para a norma_base."""
+    """Lê as strings sujas da coluna amparoLegal e mapeia dinamicamente para as normas no catálogo curado."""
     
     try:
-        # Extrai os amparos únicos da base de contratações (ignora nulos)
         df_amparos = conn.execute("SELECT DISTINCT amparoLegal FROM contratacoes WHERE amparoLegal IS NOT NULL AND amparoLegal != ''").df()
     except Exception as e:
         print(f"Erro ao buscar amparos legais (a tabela contratacoes existe?): {e}")
-        return pd.DataFrame(columns=['amparo_sujo', 'norma_base'])
+        return pd.DataFrame(columns=['amparo_sujo', 'norma_base', 'identificador_catalogo'])
+
+    # Carregar normas do catálogo curado para cruzamento dinâmico
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    catalogo_path = os.path.join(base_dir, "data", "catalogo_curado_leis.csv")
+    
+    catalogo_normas = []
+    if os.path.exists(catalogo_path):
+        df_cat = pd.read_csv(catalogo_path)
+        for _, row in df_cat.iterrows():
+            ident = str(row.get("identificador", "")).strip()
+            if ident:
+                catalogo_normas.append({
+                    "identificador": ident,
+                    "num_apenas": "".join(filter(str.isdigit, ident)),
+                    "esfera": str(row.get("esfera", ""))
+                })
 
     mapeamento = []
     
     for amparo in df_amparos['amparoLegal']:
         amparo_str = str(amparo).lower()
-        norma_base = "Não Classificado"
+        norma_base = "Não Classificado / Pendente de Curadoria"
+        ident_encontrado = None
         
-        # Lógica de Classificação / Expressões Regulares Simples
-        if "14.133" in amparo_str or "14133" in amparo_str:
-            norma_base = "Lei 14.133/2021"
-        elif "123/2006" in amparo_str or "123/06" in amparo_str:
-            norma_base = "Lei Complementar 123/2006"
-        elif "182/2021" in amparo_str or "182/21" in amparo_str:
-            norma_base = "Lei Complementar 182/2021"
-        elif "13.303" in amparo_str or "13303" in amparo_str:
-            norma_base = "Lei 13.303/2016"
-        elif "43.975" in amparo_str:
-            norma_base = "Decreto Estadual 43.975/2023"
-        elif "46.187" in amparo_str:
-            norma_base = "Decreto Estadual 46.187/2025"
+        # 1. Tentar encontrar norma do catálogo por número/identificador
+        for cat in catalogo_normas:
+            num = cat["num_apenas"]
+            if num and len(num) >= 3 and num in amparo_str:
+                norma_base = f"{cat['esfera']} - {cat['identificador']}"
+                ident_encontrado = cat['identificador']
+                break
+                
+        # 2. Regras de Fallback para normas fundamentais
+        if norma_base.startswith("Não Classificado"):
+            if "14.133" in amparo_str or "14133" in amparo_str:
+                norma_base = "Federal - Lei 14.133"
+            elif "123/2006" in amparo_str or "123/06" in amparo_str:
+                norma_base = "Federal - LC 123"
+            elif "182/2021" in amparo_str or "182/21" in amparo_str:
+                norma_base = "Federal - LC 182"
+            elif "13.303" in amparo_str or "13303" in amparo_str:
+                norma_base = "Federal - Lei 13.303"
         
         mapeamento.append({
             "amparo_sujo": amparo,
-            "norma_base": norma_base
+            "norma_base": norma_base,
+            "identificador_catalogo": ident_encontrado
         })
         
     return pd.DataFrame(mapeamento)
