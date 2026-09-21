@@ -1,6 +1,21 @@
+import sys
+import os
+from pathlib import Path
 import streamlit as st
 import pandas as pd
-from utils import set_page_config, render_custom_css, render_sidebar_docs, get_db_connection
+import duckdb
+
+# Garante que o diretório raiz esteja no sys.path
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from portal.utils import set_page_config, render_custom_css, render_sidebar_docs, get_db_connection
+from src.etl.cnae_catalog import (
+    categorizar_localizacao,
+    categorizar_setor_cnae,
+    categorizar_intensidade_tecnologica,
+)
 
 set_page_config(page_title="Perfil Produtivo e CNAE - Portal Compras PB")
 render_custom_css()
@@ -24,30 +39,127 @@ Nesta etapa, o acervo referente a Sergipe no sistema encontra-se focado no mapea
 
 conn = get_db_connection()
 
+
+def obter_dataframe_analitico(conn):
+    """Garante o carregamento dos dados com resiliência a ausência de tabelas pré-computadas."""
+    tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
+
+    # 1. Tenta consulta direta da view pré-computada
+    if "vw_analise_compras_cnae_localizacao" in tables:
+        try:
+            return conn.execute("SELECT * FROM vw_analise_compras_cnae_localizacao").df()
+        except Exception:
+            pass
+
+    # 2. Se dim_fornecedores_cnae existir
+    if "dim_fornecedores_cnae" in tables and "contratos" in tables:
+        conn.execute("""
+            CREATE TEMPORARY VIEW IF NOT EXISTS vw_analise_compras_cnae_localizacao AS
+            SELECT 
+                c.registroCge,
+                c.numeroContrato,
+                c.nomeOrgao,
+                c.dataAssinatura,
+                COALESCE(c.ano_referencia, YEAR(TRY_CAST(c.dataAssinatura AS DATE))) as ano_contrato,
+                c.valorTotal,
+                c.contratado as nome_contratado_contrato,
+                REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') as cnpj_clean,
+                f.razao_social,
+                f.uf,
+                f.municipio as municipio_fornecedor,
+                COALESCE(f.localizacao_categoria, 'Não Identificado') as localizacao_categoria,
+                COALESCE(f.cnae_fiscal, 0) as cnae_fiscal,
+                COALESCE(f.cnae_descricao, 'Não Informado') as cnae_descricao,
+                COALESCE(f.setor_economico, 'Não Classificado') as setor_economico,
+                COALESCE(f.intensidade_tecnologica, 'Não Classificado') as intensidade_tecnologica
+            FROM contratos c
+            LEFT JOIN dim_fornecedores_cnae f 
+                ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = LPAD(CAST(CAST(f.cnpj AS BIGINT) AS VARCHAR), 14, '0')
+        """)
+        return conn.execute("SELECT * FROM vw_analise_compras_cnae_localizacao").df()
+
+    # 3. Se dim_fornecedores_uf existir
+    if "dim_fornecedores_uf" in tables and "contratos" in tables:
+        df_forn = conn.execute("SELECT * FROM dim_fornecedores_uf").df()
+        df_forn["localizacao_categoria"] = df_forn.apply(
+            lambda r: categorizar_localizacao(r.get("uf"), r.get("municipio")), axis=1
+        )
+        df_forn["setor_economico"] = df_forn["cnae_fiscal"].apply(categorizar_setor_cnae)
+        df_forn["intensidade_tecnologica"] = df_forn["cnae_fiscal"].apply(categorizar_intensidade_tecnologica)
+
+        conn.register("temp_dim_forn", df_forn)
+        conn.execute("""
+            CREATE TEMPORARY VIEW IF NOT EXISTS vw_analise_compras_cnae_localizacao AS
+            SELECT 
+                c.registroCge,
+                c.numeroContrato,
+                c.nomeOrgao,
+                c.dataAssinatura,
+                COALESCE(c.ano_referencia, YEAR(TRY_CAST(c.dataAssinatura AS DATE))) as ano_contrato,
+                c.valorTotal,
+                c.contratado as nome_contratado_contrato,
+                REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') as cnpj_clean,
+                f.razao_social,
+                f.uf,
+                f.municipio as municipio_fornecedor,
+                COALESCE(f.localizacao_categoria, 'Não Identificado') as localizacao_categoria,
+                COALESCE(f.cnae_fiscal, 0) as cnae_fiscal,
+                COALESCE(f.cnae_descricao, 'Não Informado') as cnae_descricao,
+                COALESCE(f.setor_economico, 'Não Classificado') as setor_economico,
+                COALESCE(f.intensidade_tecnologica, 'Não Classificado') as intensidade_tecnologica
+            FROM contratos c
+            LEFT JOIN temp_dim_forn f 
+                ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = LPAD(CAST(CAST(f.cnpj AS BIGINT) AS VARCHAR), 14, '0')
+        """)
+        return conn.execute("SELECT * FROM vw_analise_compras_cnae_localizacao").df()
+
+    # 4. Fallback com tabela de contratos
+    if "contratos" in tables:
+        conn.execute("""
+            CREATE TEMPORARY VIEW IF NOT EXISTS vw_analise_compras_cnae_localizacao AS
+            SELECT 
+                c.registroCge,
+                c.numeroContrato,
+                c.nomeOrgao,
+                c.dataAssinatura,
+                COALESCE(c.ano_referencia, YEAR(TRY_CAST(c.dataAssinatura AS DATE))) as ano_contrato,
+                c.valorTotal,
+                c.contratado as nome_contratado_contrato,
+                REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') as cnpj_clean,
+                c.contratado as razao_social,
+                'PB' as uf,
+                c.municipio as municipio_fornecedor,
+                'Não Identificado' as localizacao_categoria,
+                0 as cnae_fiscal,
+                'Não Informado' as cnae_descricao,
+                'Não Classificado' as setor_economico,
+                'Não Classificado' as intensidade_tecnologica
+            FROM contratos c
+        """)
+        return conn.execute("SELECT * FROM vw_analise_compras_cnae_localizacao").df()
+
+    return pd.DataFrame()
+
+
+df_todos = obter_dataframe_analitico(conn)
+
+if df_todos.empty:
+    st.warning("⚠️ Não foi possível carregar os microdados de contratos no momento.")
+    st.stop()
+
 # --- Filtros de Dados ---
 st.sidebar.subheader("🔍 Filtros de Análise")
 
-# Carrega os anos disponíveis
-df_anos = conn.execute("""
-    SELECT DISTINCT ano_contrato 
-    FROM vw_analise_compras_cnae_localizacao 
-    WHERE ano_contrato IS NOT NULL 
-    ORDER BY ano_contrato DESC
-""").df()
-
-anos_list = ["Todos"] + [int(a) for a in df_anos["ano_contrato"].dropna().tolist()]
+anos_list = ["Todos"] + sorted(
+    [int(a) for a in df_todos["ano_contrato"].dropna().unique() if str(a).isdigit()],
+    reverse=True,
+)
 selected_ano = st.sidebar.selectbox("Ano do Contrato:", anos_list)
 
-# Query base filtrada
-where_clause = "WHERE 1=1"
 if selected_ano != "Todos":
-    where_clause += f" AND ano_contrato = {selected_ano}"
-
-df_base = conn.execute(f"""
-    SELECT * 
-    FROM vw_analise_compras_cnae_localizacao 
-    {where_clause}
-""").df()
+    df_base = df_todos[df_todos["ano_contrato"] == selected_ano]
+else:
+    df_base = df_todos.copy()
 
 if df_base.empty:
     st.warning("Nenhum registro encontrado para os filtros selecionados.")
