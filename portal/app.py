@@ -43,7 +43,7 @@ st.subheader("Nossos Módulos Analíticos")
 st.write("Selecione um dos painéis abaixo para explorar os dados:")
 
 # --- Layout de Cards (Hub) ---
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 
 with col1:
     st.markdown("""
@@ -59,35 +59,47 @@ with col1:
 with col2:
     st.markdown("""
         <div class="nav-card">
-            <div class="nav-card-title">⚖️ Base Legal e Regulatória</div>
+            <div class="nav-card-title">🏭 Perfil Produtivo & CNAE</div>
             <div class="nav-card-text">
-                Comparação e mapeamento da legislação (Paraíba, Sergipe e Federal) para identificar mecanismos de fomento.
+                Análise por CNAE, CNPJ, localização, setor e intensidade tecnológica dos fornecedores.
             </div>
-            <a href="/Base_Legal" target="_self" class="nav-card-button">Explorar</a>
+            <a href="/Perfil_Produtivo_CNAE" target="_self" class="nav-card-button">Explorar</a>
         </div>
     """, unsafe_allow_html=True)
 
 with col3:
     st.markdown("""
         <div class="nav-card">
-            <div class="nav-card-title">📈 Dados Socioeconômicos</div>
+            <div class="nav-card-title">⚖️ Base Legal</div>
             <div class="nav-card-text">
-                Módulos integrados com CAGED, RAIS, PIB e Comex Stat para cruzamento com a realidade econômica local.
+                Comparação e mapeamento da legislação (Paraíba, Sergipe e Federal).
             </div>
-            <a href="/Dados_Socioeconomicos" target="_self" class="nav-card-button">Explorar</a>
+            <a href="/Base_Legal" target="_self" class="nav-card-button">Explorar</a>
         </div>
     """, unsafe_allow_html=True)
 
 with col4:
     st.markdown("""
         <div class="nav-card">
-            <div class="nav-card-title">📝 Curadoria Manual</div>
+            <div class="nav-card-title">📈 Socioeconômico</div>
             <div class="nav-card-text">
-                Módulo restrito para revisão, triagem e aprovação de novas leis e decretos identificados.
+                Módulos integrados com CAGED, RAIS, PIB e Comex Stat para cruzamento local.
+            </div>
+            <a href="/Dados_Socioeconomicos" target="_self" class="nav-card-button">Explorar</a>
+        </div>
+    """, unsafe_allow_html=True)
+
+with col5:
+    st.markdown("""
+        <div class="nav-card">
+            <div class="nav-card-title">📝 Curadoria</div>
+            <div class="nav-card-text">
+                Módulo restrito para revisão e triagem de leis e decretos.
             </div>
             <a href="/Curadoria_Manual" target="_self" class="nav-card-button">Acessar</a>
         </div>
     """, unsafe_allow_html=True)
+
 
 st.markdown("<br><hr>", unsafe_allow_html=True)
 st.markdown("""

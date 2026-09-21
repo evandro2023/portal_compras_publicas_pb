@@ -7,9 +7,10 @@ Este projeto visa criar uma ferramenta analítica avançada para acompanhar e an
 3. **Modelagem Econômica e Risco**: O script `src/etl/enriquecimento_socioeconomico.py` limpa textos e constrói um Star Schema com matrizes clássicas (Keynes, Furtado, Schumpeter) e análises de Risco Metodológico.
 4. **Ingestão de Dados Econômicos (CAGED PB)**: `src/caged/ingest_caged.py` baixa e consolida os microdados formais de emprego da Paraíba (2025/2026) nos níveis CNAE de Seção, **Classe (4 dígitos)** e Subclasse, armazenando em Parquet e DuckDB.
 5. **Enriquecimento de Localização dos Fornecedores (UF/Município)**: `src/etl/enriquece_fornecedores_uf.py` consulta as APIs de Dados Abertos da Receita Federal (MinhaReceita) para identificar a UF de origem dos fornecedores e calcular a taxa de retenção territorial de renda da Paraíba.
-6. **ETL e DuckDB (Analytics)**: `src/etl/build_db.py` transforma toda a massa de CSVs, Parquets e cruzamentos de Teoria vs Gastos em uma base de dados local de alta velocidade (`compras_pb.duckdb`).
-7. **Portal Web Streamlit (Multipage)**: Dashboard interativo com Módulo de Compras Públicas, Módulo de Base Legal, Módulo Socioeconômico e Módulo de Curadoria Manual.
-8. **Módulo de Curadoria Manual (Autenticado)**: Interface para curadores revisarem, alterarem status (A ser revisado, revisando, revisada) e integrarem novas normas candidatas ao catálogo curado oficial.
+6. **Mapeamento de CNAE, Setor e Intensidade Tecnológica**: `src/etl/cnae_catalog.py` e `src/etl/enriquece_cnae_setor.py` aplicam taxonomias IBGE e OCDE para classificar contratados por 7 setores econômicos (Extrativa, Transformação, SIUP, Construção, Comércio, Serviços, Agro), 4 níveis de intensidade tecnológica e faixas de localização (Capital PB, Interior PB, Nordeste, Fora do Nordeste).
+7. **ETL e DuckDB (Analytics)**: `src/etl/build_db.py` transforma toda a massa de CSVs, Parquets e cruzamentos de Teoria vs Gastos em uma base de dados local de alta velocidade (`compras_pb.duckdb`).
+8. **Portal Web Streamlit (Multipage)**: Dashboard interativo com Módulo de Compras Públicas, Perfil Produtivo e CNAE, Módulo de Base Legal, Módulo Socioeconômico e Módulo de Curadoria Manual.
+9. **Módulo de Curadoria Manual (Autenticado)**: Interface para curadores revisarem, alterarem status (A ser revisado, revisando, revisada) e integrarem novas normas candidatas ao catálogo curado oficial.
 
 ---
 
@@ -49,7 +50,12 @@ PYTHONPATH=. uv run python src/caged/ingest_caged.py --incremental
 PYTHONPATH=. uv run python src/etl/enriquece_fornecedores_uf.py
 ```
 
-**Passo E: Rodar a Aplicação Web no Streamlit**
+**Passo E: Processar Enriquecimento por CNAE, Setor e Intensidade Tecnológica**
+```bash
+PYTHONPATH=. uv run python src/etl/enriquece_cnae_setor.py
+```
+
+**Passo F: Rodar a Aplicação Web no Streamlit**
 ```bash
 PYTHONPATH=. uv run streamlit run portal/app.py
 ```
@@ -61,24 +67,27 @@ PYTHONPATH=. uv run streamlit run portal/app.py
 - `/data/`: Base de dados, catálogo curado, DuckDB e CSVs/Parquets brutos e processados (`raw` e `processed`).
 - `/scripts/`: Scripts utilitários de web scraping e consumo de APIs (`coleta_leis.py`, `explora_api_compras_pb.py`).
 - `/src/caged/`: Ingestão, tratamento e consolidação do Novo CAGED (`data.py`, `ingest_caged.py`, `secao_classe.csv`).
-- `/src/etl/`: Lógica de transformação, enriquecimento socioeconômico e carga (`build_db.py`, `enriquecimento_socioeconomico.py`, `enriquece_fornecedores_uf.py`).
+- `/src/etl/`: Lógica de transformação, enriquecimento socioeconômico e carga (`build_db.py`, `cnae_catalog.py`, `enriquecimento_socioeconomico.py`, `enriquece_fornecedores_uf.py`, `enriquece_cnae_setor.py`).
 - `/portal/`: Aplicação interativa web Streamlit (Painel Multipage).
   - `app.py`: Página inicial (Home) com apresentação do projeto e equipe.
   - `pages/1_🛍️_Compras_Publicas.py`: Módulo 1 (Dashboard de Contratações, Contratos e Fornecedores).
   - `pages/2_⚖️_Base_Legal.py`: Módulo 2 (Matrizes de IAAN, Comparação PBxSE e Aderência Teórica).
   - `pages/3_📈_Dados_Socioeconomicos.py`: Módulo 3 (Matriz de Associação Compras x Emprego, Retenção Territorial de Renda por UF, Evolução Mensal do CAGED e Rankings por Classe CNAE).
   - `pages/4_📝_Curadoria_Manual.py`: Módulo 4 (Interface de Login e Curadoria para Triagem, Revisão e Validação da Base Oficial).
+  - `pages/5_🏭_Perfil_Produtivo_CNAE.py`: Módulo 5 (Análise por CNAE, CNPJ, Localização Geográfica, 7 Setores Econômicos e Intensidade Tecnológica OCDE/IBGE).
 - `/documentacao/`: Referenciais teóricos, relatórios em PDF e guia de ingestão do CAGED (`estrategia_ingestao_caged.md`).
 
 ---
 
 ## 📈 Status de Desenvolvimento
 
-- **[✓] Banco Analítico (DuckDB):** Estruturado com tabelas de compras, matrizes teóricas, séries do CAGED e dimensões geográficas de fornecedores.
+- **[✓] Banco Analítico (DuckDB):** Estruturado com tabelas de compras, matrizes teóricas, séries do CAGED, dimensões geográficas e visão `vw_analise_compras_cnae_localizacao`.
 - **[✓] Módulo 1 (Compras Públicas):** Implementado com consultas SQL rápidas e painéis interativos.
 - **[✓] Módulo 2 (Base Legal):** Matrizes visuais de IAAN e comparativo PB x SE.
-- **[✓] Módulo 3 (Dados Econômicos - CAGED & Retenção Territorial):** Mapeamento por Classe CNAE, Matriz de Associação Compras x Emprego e **Taxa de Retenção Territorial de Renda por UF (PB x Outros Estados)**.
+- **[✓] Módulo 3 (Dados Econômicos - CAGED & Retenção Territorial):** Mapeamento por Classe CNAE, Matriz de Associação Compras x Emprego e Taxa de Retenção Territorial de Renda por UF.
 - **[✓] Módulo 4 (Curadoria Manual):** Módulo restrito com autenticação para revisão e homologação de normas para a base oficial.
+- **[✓] Módulo 5 (Perfil Produtivo & CNAE):** Mapeamento por CNPJ, CNAE, Localização (Capital PB, Interior PB, Nordeste, Fora do Nordeste), 7 Setores Econômicos e Intensidade Tecnológica OCDE/IBGE.
+
 - **[ ] Próximos Módulos:** Incorporação do PIB municipal e VAB (Valor Adicionado Bruto).
 
 ---

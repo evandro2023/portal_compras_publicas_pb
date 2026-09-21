@@ -88,7 +88,9 @@ As tabelas do banco devem ser criadas com base nas APIs, seguindo a estrutura da
 - [x] Página de Base Legal e Regulatória, contendo IAAN, Matriz Comparativa PBxSE, Mapa de Calor Teórico e Impactos Regionais (`2_⚖️_Base_Legal.py`);
 - [x] Módulo de Dados Socioeconômicos integrando CAGED e retenção de renda (`3_📈_Dados_Socioeconomicos.py`);
 - [x] Módulo de Curadoria/Manual com login/senha e validação normativa (`4_📝_Curadoria_Manual.py`);
+- [x] Módulo de Perfil Produtivo & CNAE por localização, 7 setores econômicos e intensidade tecnológica OCDE/IBGE (`5_🏭_Perfil_Produtivo_CNAE.py`);
 - [ ] Página de itens de contratações e plano anual de contratação.
+
 
 * Bibliotecas a serem utilizadas:
 
