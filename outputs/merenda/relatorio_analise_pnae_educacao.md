@@ -14,11 +14,11 @@ Atendendo à diretriz formulada pelo Grupo de Trabalho (GT), este estudo avalia 
 A conclusão é **plenamente afirmativa**: o ecossistema de APIs de compras do Estado da Paraíba (composto por quatro endpoints integrados: `/plano_anual_contratacao`, `/contratacoes`, `/contratos` e `/itens_contratacoes`) possui granularidade suficiente para individualizar o fluxo da merenda escolar desde o planejamento orçamentário até o domicílio fiscal e CNAE dos fornecedores contratados.
 
 ### Principais Evidências Encontradas nos Microdados:
-1. **Salto de Planejamento Orçamentário (PCA):** Em 2024 e 2025, o planejamento anual de gêneros alimentícios e alimentação registrava **R$ 4,51 milhões/ano**. Em 2026, houve um salto estrutural na dotação planejada da Educação para **R$ 746,47 milhões** (40 milhões de unidades registradas na conta `33.90.30.07 - Gêneros de Alimentação`).
+1. **Salto de Planejamento Orçamentário (PCA):** Em 2024 e 2025, o planejamento anual de gêneros alimentícios e alimentação registrava **R\$ 4,51 milhões/ano**. Em 2026, houve um salto estrutural na dotação planejada da Educação para **R\$ 746,47 milhões** (40 milhões de unidades registradas na conta `33.90.30.07 - Gêneros de Alimentação`).
 2. **Instrumento Específico de Chamamento Público (Agricultura Familiar):** Localizou-se o processo formal **`22.000.045106.2026`** da SEE-PB, modalidade **Chamamento Público**, fundamentado na **Lei Federal nº 14.628/2023, Art. 4º** (marco legal do PAA e PNAE) destinado à aquisição de alimentos diretamente de produtores e cooperativas da agricultura familiar.
 3. **Retenção Territorial de Renda (54,1% Local vs. 45,9% Vazamento Interestadual):**
-   - **Retenção na Paraíba (54,07%):** R$ 7,20 milhões na Capital (João Pessoa) e R$ 486 mil no Interior (Catolé do Rocha).
-   - **Vazamento de Recursos para Outros Estados (45,93%):** R$ 3,48 milhões para São Paulo (24,45%), R$ 2,48 milhões para o Rio Grande do Norte (17,43%), além de fornecedores em Minas Gerais (2,63%), Rondônia (1,08%), Pernambuco (0,31%) e Santa Catarina (0,02%).
+   - **Retenção na Paraíba (54,07%):** R\$ 7,20 milhões na Capital (João Pessoa) e R\$ 486 mil no Interior (Catolé do Rocha).
+   - **Vazamento de Recursos para Outros Estados (45,93%):** R\$ 3,48 milhões para São Paulo (24,45%), R\$ 2,48 milhões para o Rio Grande do Norte (17,43%), além de fornecedores em Minas Gerais (2,63%), Rondônia (1,08%), Pernambuco (0,31%) e Santa Catarina (0,02%).
 
 ---
 
@@ -55,34 +55,34 @@ A segregação dos dados foi viabilizada pela combinação das seguintes chaves 
 
 ### 3.1. Planejamento no PCA da Secretaria de Educação (2024–2026)
 
-| Exercício | Código Conta | Descrição da Conta Orçamentária | Quantidade Prevista | Preço Médio Ref. | Valor Total Planejado |
+| Exercício | Código Conta | Descrição da Conta Orçamentária | Quantidade Prevista | Preço Médio Ref. (R\$) | Valor Total Planejado (R\$) |
 | :---: | :---: | :--- | :---: | :---: | :---: |
-| **2024** | 33903007 | Gêneros de Alimentação (Consumo) | 13.150 | R$ 135,42 | R$ 1.780.766,00 |
-| **2024** | 33903941 | Fornecimento de Alimentação (Serviço PJ) | 133.460 | R$ 20,48 | R$ 2.733.048,64 |
-| **2025** | 33903007 | Gêneros de Alimentação (Consumo) | 13.150 | R$ 135,42 | R$ 1.780.766,00 |
-| **2025** | 33903941 | Fornecimento de Alimentação (Serviço PJ) | 133.460 | R$ 20,48 | R$ 2.733.048,64 |
-| **2026** | 33903007 | Gêneros de Alimentação (Consumo) | 40.016.300 | R$ 9,33 | **R$ 373.239.091,89** |
-| **2026** | 33903007 | Gêneros de Alimentação (Consumo - Item 2) | 40.016.300 | R$ 9,33 | **R$ 373.239.091,89** |
+| **2024** | 33903007 | Gêneros de Alimentação (Consumo) | 13.150 | 135,42 | 1.780.766,00 |
+| **2024** | 33903941 | Fornecimento de Alimentação (Serviço PJ) | 133.460 | 20,48 | 2.733.048,64 |
+| **2025** | 33903007 | Gêneros de Alimentação (Consumo) | 13.150 | 135,42 | 1.780.766,00 |
+| **2025** | 33903941 | Fornecimento de Alimentação (Serviço PJ) | 133.460 | 20,48 | 2.733.048,64 |
+| **2026** | 33903007 | Gêneros de Alimentação (Consumo) | 40.016.300 | 9,33 | **373.239.091,89** |
+| **2026** | 33903007 | Gêneros de Alimentação (Consumo - Item 2) | 40.016.300 | 9,33 | **373.239.091,89** |
 
-> **Nota:** Em 2026, a Secretaria da Educação alocou duas linhas idênticas de R$ 373,2 milhões no PCA, indicando a previsão orçamentária global de **R$ 746,47 milhões** para suporte alimentar contínuo da rede escolar estadual.
+> **Nota:** Em 2026, a Secretaria da Educação alocou duas linhas idênticas de R\$ 373,2 milhões no PCA, indicando a previsão orçamentária global de **R\$ 746,47 milhões** para suporte alimentar contínuo da rede escolar estadual.
 
 ---
 
 ### 3.2. Contratos Celebrados e Retenção Territorial de Renda
 
-A análise dos contratos ativos identificou **14 contratos formais de alimentação e kits de merenda** na Educação somando **R$ 14,22 milhões**:
+A análise dos contratos ativos identificou **14 contratos formais de alimentação e kits de merenda** na Educação somando **R\$ 14,22 milhões**:
 
-| Categoria Territorial | UF | Cidade Sede | Contratos | Fornecedores | Valor Contratado (R$) | Participação (%) |
+| Categoria Territorial | UF | Cidade Sede | Contratos | Fornecedores | Valor Contratado (R\$) | Participação (%) |
 | :--- | :---: | :--- | :---: | :---: | :---: | :---: |
-| **Capital (PB)** | PB | João Pessoa | 6 | 6 | R$ 7.204.754,37 | **50,65%** |
-| **Fora do Nordeste** | SP | Iracemápolis | 1 | 1 | R$ 3.478.267,96 | **24,45%** |
-| **Nordeste (Demais UFs)** | RN | Mossoró | 1 | 1 | R$ 2.478.724,62 | **17,43%** |
-| **Interior (PB)** | PB | Catolé do Rocha | 1 | 1 | R$ 486.305,32 | **3,42%** |
-| **Fora do Nordeste** | MG | Belo Horizonte | 1 | 1 | R$ 374.489,84 | **2,63%** |
-| **Fora do Nordeste** | RO | Porto Velho | 1 | 1 | R$ 153.636,00 | **1,08%** |
-| **Nordeste (Demais UFs)** | PE | Camaragibe / Paulista | 2 | 2 | R$ 44.475,03 | **0,31%** |
-| **Fora do Nordeste** | SC | São José | 1 | 1 | R$ 3.456,50 | **0,02%** |
-| **TOTAL GERAL** | - | - | **14** | **14** | **R$ 14.224.109,64** | **100,00%** |
+| **Capital (PB)** | PB | João Pessoa | 6 | 6 | 7.204.754,37 | **50,65%** |
+| **Fora do Nordeste** | SP | Iracemápolis | 1 | 1 | 3.478.267,96 | **24,45%** |
+| **Nordeste (Demais UFs)** | RN | Mossoró | 1 | 1 | 2.478.724,62 | **17,43%** |
+| **Interior (PB)** | PB | Catolé do Rocha | 1 | 1 | 486.305,32 | **3,42%** |
+| **Fora do Nordeste** | MG | Belo Horizonte | 1 | 1 | 374.489,84 | **2,63%** |
+| **Fora do Nordeste** | RO | Porto Velho | 1 | 1 | 153.636,00 | **1,08%** |
+| **Nordeste (Demais UFs)** | PE | Camaragibe / Paulista | 2 | 2 | 44.475,03 | **0,31%** |
+| **Fora do Nordeste** | SC | São José | 1 | 1 | 3.456,50 | **0,02%** |
+| **TOTAL GERAL** | - | - | **14** | **14** | **14.224.109,64** | **100,00%** |
 
 ---
 
@@ -90,12 +90,12 @@ A análise dos contratos ativos identificou **14 contratos formais de alimentaç
 
 A desagregação das empresas contratadas revela dois padrões distintos de fornecimento:
 1. **Serviços de Refeições e Alimentação Coletiva:**
-   - *Drop's Buffet e Eventos* (João Pessoa - PB): R$ 6.706.763,70 (CNAE 5620-1 - Serviços de alimentação para recepções/bufê).
-   - *Leve Refeições Coletivas* (Mossoró - RN): R$ 2.478.724,62 (CNAE 5611-2 - Restaurantes e similares).
+   - *Drop's Buffet e Eventos* (João Pessoa - PB): R\$ 6.706.763,70 (CNAE 5620-1 - Serviços de alimentação para recepções/bufê).
+   - *Leve Refeições Coletivas* (Mossoró - RN): R\$ 2.478.724,62 (CNAE 5611-2 - Restaurantes e similares).
 2. **Kits de Merenda, Utensílios de Cozinha e Apoio Logístico:**
-   - *Domínios Participações Ltda* (Iracemápolis - SP): R$ 3.478.267,96 (Comércio atacadista).
-   - *G Leite dos Santos Vieira* (Catolé do Rocha - PB): R$ 486.305,32 (Comércio varejista).
-   - *Santana Werneck Comercial* (Belo Horizonte - MG): R$ 374.489,84.
+   - *Domínios Participações Ltda* (Iracemápolis - SP): R\$ 3.478.267,96 (Comércio atacadista).
+   - *G Leite dos Santos Vieira* (Catolé do Rocha - PB): R\$ 486.305,32 (Comércio varejista).
+   - *Santana Werneck Comercial* (Belo Horizonte - MG): R\$ 374.489,84.
 
 ---
 
