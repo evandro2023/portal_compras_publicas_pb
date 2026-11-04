@@ -143,6 +143,30 @@ def obter_dataframe_analitico(conn):
 
 df_todos = obter_dataframe_analitico(conn)
 
+
+def deduplicar_contratos(df: pd.DataFrame) -> pd.DataFrame:
+    """Mantém um único registro por contrato (registroCge).
+
+    A base bruta contém snapshots repetidos do mesmo contrato (ingestões
+    sucessivas). Para não inflar somas, mantém-se a versão de maior valorTotal
+    (a mais atualizada, pois aditivos/apostilas só acrescem ao valor).
+    """
+    if df.empty or "registroCge" not in df.columns:
+        return df
+    # Contratos sem registroCge (origem PNCP) não podem ser deduplicados por essa
+    # chave (colapsariam em um só); a deduplicação deles é feita no ETL.
+    com_id = df[df["registroCge"].notna()]
+    sem_id = df[df["registroCge"].isna()]
+    com_id = com_id.sort_values("valorTotal", ascending=False, na_position="last").drop_duplicates(
+        subset="registroCge", keep="first"
+    )
+    return pd.concat([com_id, sem_id]).sort_index().reset_index(drop=True)
+
+
+_n_bruto = len(df_todos)
+df_todos = deduplicar_contratos(df_todos)
+_n_duplicados = _n_bruto - len(df_todos)
+
 if df_todos.empty:
     st.warning("⚠️ Não foi possível carregar os microdados de contratos no momento.")
     st.stop()
@@ -294,12 +318,17 @@ with tab_setor:
 with tab_tabela:
     st.subheader("Microdados de Contratos com Enriquecimento Produtivo")
     st.write("Visualização tabular completa dos contratos cruzados com a receita federal e CNAE.")
-    
-    st.dataframe(
-        df_base[[
-            "numeroContrato", "nomeOrgao", "razao_social", "cnpj_clean", 
-            "uf", "localizacao_categoria", "setor_economico", "intensidade_tecnologica", "valorTotal"
-        ]].rename(columns={
+    st.caption(
+        f"Uma linha por contrato (`registroCge` único). {_n_duplicados:,} registros duplicados "
+        f"da base bruta foram removidos; a soma da coluna Valor Total confere com o KPI "
+        f"**R$ {total_valor:,.2f}** ({total_contratos:,} contratos)."
+    )
+
+    df_tabela = df_base[[
+        "registroCge", "numeroContrato", "nomeOrgao", "razao_social", "cnpj_clean",
+        "uf", "localizacao_categoria", "setor_economico", "intensidade_tecnologica", "valorTotal"
+    ]].rename(columns={
+            "registroCge": "Registro CGE",
             "numeroContrato": "Nº Contrato",
             "nomeOrgao": "Órgão Contratante",
             "razao_social": "Razão Social Fornecedor",
@@ -309,9 +338,18 @@ with tab_tabela:
             "setor_economico": "Setor",
             "intensidade_tecnologica": "Intensidade Tec.",
             "valorTotal": "Valor Total (R$)"
-        }),
+    })
+
+    st.dataframe(
+        df_tabela,
         column_config={
             "Valor Total (R$)": st.column_config.NumberColumn(format="R$ %,.2f")
         },
         hide_index=True
+    )
+    st.download_button(
+        "⬇️ Baixar CSV",
+        df_tabela.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
+        file_name="contratos_perfil_produtivo.csv",
+        mime="text/csv",
     )

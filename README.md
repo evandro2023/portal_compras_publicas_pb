@@ -40,6 +40,15 @@ uv run scripts/coleta_leis.py --baixar
 uv run scripts/explora_api_compras_pb.py --limite-paginas 0
 ```
 
+> Para atualizar aditivos de contratos de anos anteriores (o modo `--incremental` só busca o ano corrente), recarregue os contratos por completo:
+> ```bash
+> uv run scripts/explora_api_compras_pb.py --limite-paginas 0 --endpoints /contratos --anos 2024 2025 2026
+> ```
+> Depois, reconstrua o banco (aplica automaticamente a deduplicação de contratos e os enriquecimentos de socioeconomia e UF dos fornecedores):
+> ```bash
+> PYTHONPATH=. uv run python src/etl/build_db.py
+> ```
+
 **Passo C: Ingerir Microdados do CAGED (Paraíba)**
 ```bash
 PYTHONPATH=. uv run python src/caged/ingest_caged.py --incremental
@@ -65,9 +74,9 @@ PYTHONPATH=. uv run streamlit run portal/app.py
 ## 🗂️ Estrutura de Diretórios
 
 - `/data/`: Base de dados, catálogo curado, DuckDB e CSVs/Parquets brutos e processados (`raw` e `processed`).
-- `/scripts/`: Scripts utilitários de web scraping e consumo de APIs (`coleta_leis.py`, `explora_api_compras_pb.py`).
+- `/scripts/`: Scripts utilitários de web scraping e consumo de APIs (`coleta_leis.py`, `explora_api_compras_pb.py`, `valida_cagepa_planilha.py`).
 - `/src/caged/`: Ingestão, tratamento e consolidação do Novo CAGED (`data.py`, `ingest_caged.py`, `secao_classe.csv`).
-- `/src/etl/`: Lógica de transformação, enriquecimento socioeconômico e carga (`build_db.py`, `cnae_catalog.py`, `enriquecimento_socioeconomico.py`, `enriquece_fornecedores_uf.py`, `enriquece_cnae_setor.py`).
+- `/src/etl/`: Lógica de transformação, enriquecimento socioeconômico e carga (`build_db.py`, `dedup_contratos.py`, `cnae_catalog.py`, `enriquecimento_socioeconomico.py`, `enriquece_fornecedores_uf.py`, `enriquece_cnae_setor.py`).
 - `/portal/`: Aplicação interativa web Streamlit (Painel Multipage).
   - `app.py`: Página inicial (Home) com apresentação do projeto e equipe.
   - `pages/1_🛍️_Compras_Publicas.py`: Módulo 1 (Dashboard de Contratações, Contratos e Fornecedores).
@@ -88,6 +97,8 @@ PYTHONPATH=. uv run streamlit run portal/app.py
 - **[✓] Módulo 4 (Curadoria Manual):** Módulo restrito com autenticação para revisão e homologação de normas para a base oficial.
 - **[✓] Módulo 5 (Perfil Produtivo & CNAE):** Mapeamento por CNPJ, CNAE, Localização (Capital PB, Interior PB, Nordeste, Fora do Nordeste), 7 Setores Econômicos e Intensidade Tecnológica OCDE/IBGE.
 
+- **[✓] Qualidade da base de contratos:** deduplicação por contrato (`src/etl/dedup_contratos.py`, chave `registroCge` ou `urlContrato` para contratos do PNCP); aditivos e apostilas já consolidados em `valorTotal`; validação cruzada com a planilha da CAGEPA (`scripts/valida_cagepa_planilha.py`, relatórios em `outputs/validacao_cagepa/`). Base atual: 15.352 contratos únicos.
+- **[ ] Auditoria pendente:** `contratacoes` e `itens_contratacoes` (duplicidades) e `dim_contratacoes_macro`.
 - **[ ] Próximos Módulos:** Incorporação do PIB municipal e VAB (Valor Adicionado Bruto).
 
 ---

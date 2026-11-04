@@ -55,6 +55,14 @@ def build_database():
             except Exception as e:
                 print(f"  Erro ao processar {file}: {e}")
 
+    # Deduplica contratos (um registro por contrato; aditivos já consolidados em valorTotal)
+    try:
+        from dedup_contratos import deduplicar_contratos
+        antes, depois = deduplicar_contratos(conn)
+        print(f"Contratos deduplicados: {antes} -> {depois}")
+    except Exception as e:
+        print(f"Aviso ao deduplicar contratos: {e}")
+
     # Lista as tabelas no banco de dados no final
     print("\n--- Tabelas criadas no banco ---")
     tables = conn.execute("SHOW TABLES").fetchall()

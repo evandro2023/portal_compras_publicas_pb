@@ -18,6 +18,8 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Explora as APIs de compras públicas do estado da PB.")
     parser.add_argument('--limite-paginas', type=int, default=2, help="Limite de páginas por ano/endpoint para evitar cargas massivas na fase exploratória. Use 0 para sem limite.")
     parser.add_argument('--incremental', action='store_true', help="Habilita carga incremental: busca apenas dados do ano corrente e deduplica a base CSV.")
+    parser.add_argument('--endpoints', nargs='+', default=None, help="Restringe a coleta a estes endpoints (ex.: /contratos). Padrão: todos.")
+    parser.add_argument('--anos', nargs='+', type=int, default=None, help="Anos a coletar (sobrescreve ANOS_ALVO / --incremental).")
     return parser.parse_args()
 
 def fetch_data_from_endpoint(endpoint: str, ano: int, limite_paginas: int) -> list:
@@ -112,12 +114,12 @@ def main():
     
     # Se incremental estiver ativo, substituímos a lista de anos alvo pelo ano corrente.
     from datetime import datetime
-    anos_a_processar = [datetime.now().year] if args.incremental else ANOS_ALVO
+    anos_a_processar = args.anos or ([datetime.now().year] if args.incremental else ANOS_ALVO)
     
     output_base_dir = "data/raw/compras_pb"
     ensure_dir(f"{output_base_dir}/.keep")
     
-    for endpoint in ENDPOINTS:
+    for endpoint in (args.endpoints or ENDPOINTS):
         # Pega o nome do arquivo a partir do endpoint (ex: /contratacoes -> contratacoes.csv)
         nome_arquivo = f"{endpoint.strip('/')}.csv"
         caminho_arquivo = os.path.join(output_base_dir, nome_arquivo)
@@ -143,6 +145,11 @@ def main():
                 # Primeiro, converte todas as colunas para string no drop_duplicates para evitar problemas de tipos in-hashables
                 df_str = df.astype(str)
                 df = df.loc[~df_str.duplicated(keep='last')].reset_index(drop=True)
+                if endpoint == '/contratos' and 'registroCge' in df.columns:
+                    # Um registro por contrato: chave = registroCge (ou urlContrato, p/ contratos do PNCP
+                    # sem registroCge). keep='last' preserva o snapshot mais recente (aditivos atualizados).
+                    chave = df['registroCge'].fillna(df['urlContrato'])
+                    df = df.loc[~chave.duplicated(keep='last')].reset_index(drop=True)
                 print(f"Incremental concluído. Removidas as duplicatas. Novo total de registros: {len(df)}")
             else:
                 df = df_novos
