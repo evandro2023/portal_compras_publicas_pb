@@ -1,14 +1,14 @@
 esfera,identificador,ano,tipo,tema_principal,url_oficial,status_revisao,hash_documento
-Federal,Lei 14.133,2021,Lei,Licitações,https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm,revisado,db3798176475f7ff76084af02a44af09c04084a6c2d682a81318e41cd1282a35
-Federal,LC 182,2021,Lei Complementar,Startups,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp182.htm,revisado,d749052a0b08ef812595ffba36986abf4cf89125190d468967cdadd14a1ee456
-Federal,Decreto 11.630,2023,Decreto,Inovações PAC,https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/decreto/d11630.htm,revisado,bbc449d43c6f635fe7dfe6e7d39904ecc52eefee3abe8ac0223ca4e0c10af163
+Federal,Lei 14.133,2021,Lei,Licitações,https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2021/lei/l14133.htm,revisado,fd3a9a0bd5fa915f2f7d925bf479b7096d32464f007b1471a978b81c88f4d03c
+Federal,LC 182,2021,Lei Complementar,Startups,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp182.htm,revisado,e017e48d5f6305e7b3d7701f84e88aac4634dfc9850ca6b4ec45c28ece4e5937
+Federal,Decreto 11.630,2023,Decreto,Inovações PAC,https://www.planalto.gov.br/ccivil_03/_ato2023-2026/2023/decreto/d11630.htm,revisado,e2253f395eff57de49a07169270d4a6742f1b7d4bc8b3a6d8a76fb6f1cd93758
 Federal,Decreto 12.705,2025,Decreto,Taxonomia Sustentável,,revisado,
 Federal,Decreto 12.771,2025,Decreto,ENCP,,revisado,
-Federal,Resolução CD/FNDE 11,2026,Resolução,FNDE,https://www.gov.br/fnde/pt-br/acesso-a-informacao/legislacao/resolucoes/2026/resolucao-cd-fnde-no-11-de-22-de-junho-de-2026,revisado,f64d920a6ca13937fcc0d31c80282e4358685563e6d71b810718d5f6bed71f8f
+Federal,Resolução CD/FNDE 11,2026,Resolução,FNDE,https://www.gov.br/fnde/pt-br/acesso-a-informacao/legislacao/resolucoes/2026/resolucao-cd-fnde-no-11-de-22-de-junho-de-2026,revisado,5ec47831c7f0349b0b1cac8111d5fe01c82cdd0e2476f0b3272d5eef374a3295
 PB,Lei 12.191,2022,Lei,Inovação,,revisado,
-PB,Decreto 45.710,2024,Decreto,Credenciamento,,revisado,
-PB,Decreto 42.967,2022,Decreto,Pesquisa Preços,,revisado,
-PB,Decreto 43.975,2023,Decreto,Contratos,,revisado,
+PB,Decreto 45.710,2024,Decreto,Credenciamento,"https://centraldecompras.pb.gov.br/appls/sgc/transparencia.nsf/0/8A9FDB66D761109603258BC400611FBB/$FILE/Decreto 45.710 - Procedimento auxiliar de Credenciamento para contratações de bens e serviços, no âmbito da adm pública estadual direta, autarquica e fundacional.pdf",revisado,b47a97ba517729ac6ec3d5d30792b94c2ba151ed7b34753e9deec4f799d88b9e
+PB,Decreto 42.967,2022,Decreto,Pesquisa Preços,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/DECRETO Nº 42.967 DE 25 DE OUTUBRO DE 2022 - PESQUISA DE PREÇOS.pdf,revisado,d91e7a9637afa69753f0ee21eabdfaee0e32d75786ac7551e21cddd8aa367bf4
+PB,Decreto 43.975,2023,Decreto,Contratos,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/DECRETO 43.975.2023.pdf,revisado,91370fe117c8a73fa08d5901b8c7016180831d739cc37166cd81b00d7b0620c5
 PB,Lei 8.292,2007,Lei,MPE,,revisado,
 PB,Decreto 32.056,2011,Decreto,Compras MPE,,revisado,
 PB,Decreto 43.346,2022,Decreto,Logística Reversa,,revisado,
@@ -21,12 +21,23 @@ SE,Decreto 567,2024,Decreto,Plano Anual,,revisado,
 SE,Decreto 622,2024,Decreto,Compras Sustentáveis,,revisado,
 SE,Decreto 623,2024,Decreto,Selo Socioambiental,,revisado,
 SE,Lei 8.866,2021,Lei,Programa Integridade,,revisado,
-Federal,LC 123,2006,Lei Complementar,Estatuto da Micro e Pequena Empresa,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp123.htm,revisado,c483713ee08bd5fe74ac61d56c306b279050f177578150ee4445d8fe6f2c6494
-PB,Decreto 46.187,2025,Decreto,Fase preparatória e contratações diretas,https://centraldecompras.pb.gov.br/appls/sgc/transparencia.nsf/0/C1B315B1C5FA06A503258C35006AAAAD/$FILE/Decreto%2046.187%20de%2028.01.2025%20-%20Dispõe%20sobre%20a%20fase%20preparatoria.pdf,revisado,
-PB,Decreto 41.200,2021,Decreto,Aplicabilidade Lei 14.133 e Contratação Direta,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/diario-oficial-27-04-2021%20Pag2-3.pdf?OpenFileResource,revisado,
+Federal,LC 123,2006,Lei Complementar,Estatuto da Micro e Pequena Empresa,https://www.planalto.gov.br/ccivil_03/leis/lcp/lcp123.htm,revisado,c997187aa00d817ef47af9f7150071274eaa388c83c6dc167ee256b9e832a033
+PB,Decreto 46.187,2025,Decreto,Fase preparatória e contratações diretas,"https://centraldecompras.pb.gov.br/appls/sgc/transparencia.nsf/0/C1B315B1C5FA06A503258C35006AAAAD/$FILE/Decreto 46.187 de 28.01.2025 - Dispõe sobre a fase preparatoria das licitações e contratações diretas para aquisição de bens e prestação de serviços no ambito da administração publica estadual direta, autarquica e fundacional.pdf",revisado,e6acc22ac2c2c70b175a70cb482a00fd787c52637106a7e395e4f69a4f23c5e2
+PB,Decreto 41.200,2021,Decreto,Aplicabilidade Lei 14.133 e Contratação Direta,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/diario-oficial-27-04-2021 Pag2-3.pdf?OpenFileResource,revisado,8dff84fd0555fcb4fba7ae22727ad5c50f40c8dcf55a5103f7920d81dfdbf771
 PB,IN SEAD 004,2023,Instrução Normativa,Regras de Licitação,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/INSTRUÇÃO%20NORMATIVA%20SEAD%20Nº%20004_2023.pdf?OpenFileResource,revisado,
 PB,IN SEAD 005,2023,Instrução Normativa,Menor Preço ou Maior Desconto,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/INSTRUÇÃO%20NORMATIVA%20SEAD%20Nº%20005_2023.pdf?OpenFileResource,revisado,
 PB,IN SEAD 006,2023,Instrução Normativa,Técnica e Preço,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/INSTRUÇÃO%20NORMATIVA%20SEAD%20Nº%20006_2023.pdf?OpenFileResource,revisado,
-PB,IN SEAD 007,2023,Instrução Normativa,Execução Indireta,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/INSTRUCAO%20NORMATIVA%20SEAD%20N%20007.2023.pdf?OpenFileResource,revisado,
+PB,IN SEAD 007,2023,Instrução Normativa,Execução Indireta,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/INSTRUCAO%20NORMATIVA%20SEAD%20N%20007.2023.pdf?OpenFileResource,revisado,2cd3b86c0c54c1c1dfc68bb35ced1a8602ae250cf9bf74dd8e17791ed7b040fe
 PB,Portaria Conjunta 001,2024,Portaria,Operacionalização Lei 14.133,https://centraldecompras.pb.gov.br/appls/sgc/transparencia.nsf/0/6E2CECEE8C449D0C03258AEB00550C9B/$FILE/,revisado,
 PB,ON Conjunta 0001,2025,Orientação Normativa,Licitação e Contratação Direta,https://centraldecompras.pb.gov.br/appls/sgc/transparencia.nsf/0/1BC3EF79B230A90803258C9900602B4E/$FILE/ORIENTACAO.pdf,revisado,
+PB,Decreto 43.759,2023,Decreto,Sistema de Registro de Preços,"https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/03 - DECRETO 43.759 - Regulamento os arts 82 a 86 da Lei 14133, dispõe sore o procedimento para auxiliar do SRP.pdf",revisado,30d93b15ac5ad262300de3d89946f8a5ddbda2e52edda50cad0c7e5ce4f154a8
+PB,Decreto 44.383,2023,Decreto,Bens Comuns e de Luxo,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/Decreto nº 44.383.pdf,revisado,339e5e48fcab5ceb5f08e79f308d35e8c8c6284cd76a17af54b2243d19f1a496
+PB,Decreto 44.639,2023,Decreto,Plano de Contratações Anual (PCA),https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/PCA - diario-oficial-23-12-2023-portal-1.pdf,revisado,495860ac748571966b1a7d4f48c29ae628fb2aeb013ca791101dbd092418dbe0
+PB,Decreto 44.966,2024,Decreto,Obras e Engenharia,https://centraldecompras.pb.gov.br/appls/sgc/transparencia.nsf/0/23F4DA0435CF41AA03258B16006928E9/$FILE/DECRETO Nº 44.966 DE 24 DE ABRIL DE 2024 Fase preparatória das licitações e das contratações diretas obras e serv engenharia.pdf,revisado,8648d8fb9bc65ee63fdcb495834f0649e8b71e76efc300aba19e037594f33979
+PB,IN SEAD 001/2023,2023,Instrução Normativa,Dispensa de Licitação,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/INSTRUÇÃO NORMATIVA SEAD Nº 001.2023-1.pdf?OpenFileResource,revisado,4a849f5d70fd95360650eea37b2a3931d85439e300d0ff4e83f0b9b7dd273fe4
+PB,IN SEAD 002/2023,2023,Instrução Normativa,Procedimentos e Governança,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/IN 002_2023 - Participação de Pessoa Física.pdf?OpenFileResource,revisado,9143fc30ac7c3a19835b70f6d3b6937b82f9d2c324fc64266f8eb6e4ec5af4db
+PB,IN SEAD 003/2023,2023,Instrução Normativa,Obras e Engenharia,"https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/INSTRUÇÃO NORMATIVA SEAD Nº 003_2023, DE 08 DE NOVEMBRO DE 2023.pdf?OpenFileResource",revisado,c35be7deb5af4328332dd977136ff7019945db261a8f54f85c262865b37bcd7b
+PB,IN SEAD 001.2024,2024,Instrução Normativa,Procedimentos e Governança,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/Instrução%20Normativa%20SEAD%20001.2024%20-%20Altera%20a%20IN%20001.2023.pdf?OpenFileResource,revisado,99a9d3a32387863985400097d08d16a5d9c071f4d49fc9714673c105a384cb56
+PB,RICCS PBSAUDE,2024,Regulamento,Saúde Pública / Empresa Estatal,https://centraldecompras.pb.gov.br/appls/sgc/transparencia.nsf/0/3979EBF48A553C9D03258C90004C9693/$FILE/RICSTIMBRENOVO.pdf,revisado,ae68c943954bd6b8a162f7b1b259b270ce10ddcff887b10f7d058e8c47b6c9d0
+PB,ON Conjunta 001/2021,2021,Orientação Normativa,Procedimentos e Governança,https://centraldecompras.pb.gov.br/appls/ccompras/central.nsf/DiÃ¡rio Oficial 06-08-2021 - ORIENTAÃÃO DA INSTRUÃÃO NORMATIVA CONJUNTA 0001.2021.pdf?OpenFileResource,revisado,
+PB,OT CJ 4,2024,Orientação Técnica,Procedimentos e Governança,https://centraldecompras.pb.gov.br/appls/sgc/transparencia.nsf/0/AC9C38209A1A280803258B950077A65D/$FILE/ORIENTAÇÃO TÉCNICA CJ CGE-SEAD 001-2024.pdf,revisado,12a8bf3f1618952f8818cbd7ca843e7611195a4edd9d642861390c214fe07f3e

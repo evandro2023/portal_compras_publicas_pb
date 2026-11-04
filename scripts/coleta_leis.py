@@ -4,6 +4,10 @@ import requests
 import hashlib
 import os
 import time
+import urllib.parse
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Coleta e baixa as leis a partir do catálogo curado.")
@@ -19,10 +23,24 @@ def ensure_dir(file_path):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-def get_local_path(esfera, identificador, ano):
+def clean_url(u: str) -> str:
+    """Sanitiza URLs com espaços e caracteres especiais mantendo querystrings válidas."""
+    if not u or u.lower() == 'nan' or not u.startswith('http'):
+        return u
+    p = urllib.parse.urlsplit(u)
+    path = urllib.parse.quote(urllib.parse.unquote(p.path))
+    query = urllib.parse.quote(urllib.parse.unquote(p.query), safe='=&?') if p.query else ''
+    return urllib.parse.urlunsplit((p.scheme, p.netloc, path, query, ''))
+
+def get_local_path(esfera, identificador, ano, url=""):
     base_dir = "data/leis"
     safe_ident = str(identificador).replace("/", "_").replace(".", "_").replace(" ", "_").lower()
-    filename = f"{safe_ident}_{ano}.html"
+    
+    ext = ".html"
+    if url.lower().endswith(".pdf") or ".pdf?" in url.lower() or "$file/" in url.lower():
+        ext = ".pdf"
+        
+    filename = f"{safe_ident}_{ano}{ext}"
     
     if esfera.lower() == "federal":
         return os.path.join(base_dir, "federais", filename)
@@ -51,21 +69,22 @@ def main():
     }
 
     for index, row in df.iterrows():
-        url = str(row.get('url_oficial', 'nan'))
+        url_raw = str(row.get('url_oficial', 'nan')).strip()
+        url = clean_url(url_raw)
         esfera = str(row.get('esfera', ''))
         ident = str(row.get('identificador', ''))
         ano = str(row.get('ano', ''))
         
         status_download = "Nao Solicitado"
-        local_path = get_local_path(esfera, ident, ano)
+        local_path = get_local_path(esfera, ident, ano, url)
         doc_hash = row.get('hash_documento', None)
 
-        if url.lower() != 'nan' and url.startswith('http'):
+        if url and url.lower() != 'nan' and url.startswith('http'):
             if args.baixar:
                 print(f"Baixando: {ident} - {url}")
                 try:
                     time.sleep(1) # Delay para evitar bloqueio
-                    response = requests.get(url, headers=headers, timeout=15)
+                    response = requests.get(url, headers=headers, timeout=25, verify=False)
                     
                     if response.status_code == 200:
                         content = response.content
