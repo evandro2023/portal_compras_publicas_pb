@@ -102,7 +102,32 @@ if not os.path.exists(CANDIDATAS_CSV):
     st.info("Nenhuma norma candidata pendente de revisão no momento.")
     st.stop()
 
-df_candidatas = pd.read_csv(CANDIDATAS_CSV, dtype=str).fillna("")
+def carregar_candidatas_seguro(path_csv):
+    """Carrega CSV de candidatas com auto-detecção resiliente de separador e codificação."""
+    for enc in ["utf-8-sig", "utf-8", "latin1"]:
+        for sep in [None, ";", ","]:
+            try:
+                if sep is None:
+                    df = pd.read_csv(path_csv, sep=None, engine="python", encoding=enc, dtype=str).fillna("")
+                else:
+                    df = pd.read_csv(path_csv, sep=sep, encoding=enc, dtype=str).fillna("")
+                if not df.empty and len(df.columns) > 1:
+                    return df
+            except Exception:
+                continue
+    return pd.read_csv(path_csv, dtype=str).fillna("")
+
+df_candidatas = carregar_candidatas_seguro(CANDIDATAS_CSV)
+
+# Padroniza sinônimos de colunas
+rename_map = {
+    "titulo": "título",
+    "tema_detectado": "tema detectado",
+    "tema": "tema detectado",
+    "url": "URL",
+    "link": "URL"
+}
+df_candidatas = df_candidatas.rename(columns={k: v for k, v in rename_map.items() if k in df_candidatas.columns and v not in df_candidatas.columns})
 
 if df_candidatas.empty:
     st.success("🎉 Todas as normas candidatas já foram revisadas e integradas!")
