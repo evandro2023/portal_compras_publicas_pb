@@ -118,3 +118,4 @@ Todos os artefatos de dados foram gerados e armazenados no repositório do proje
 - 📂 **Pasta do Módulo:** [`outputs/merenda/`](file:///home/sti-gii/Projetos/PythonProject/portal_compras_publica_pb/outputs/merenda/)
 - 📄 **Base Tabular Unificada (CSV):** [`outputs/merenda/dados_pnae_educacao.csv`](file:///home/sti-gii/Projetos/PythonProject/portal_compras_publica_pb/outputs/merenda/dados_pnae_educacao.csv) (delimitador `;` e vírgula decimal, pronto para Excel/PowerBI).
 - 💾 **Script de Consultas SQL (DuckDB / DBeaver):** [`outputs/merenda/consultas_pnae_educacao.sql`](file:///home/sti-gii/Projetos/PythonProject/portal_compras_publica_pb/outputs/merenda/consultas_pnae_educacao.sql) (5 blocos analíticos prontos para reuso).
+

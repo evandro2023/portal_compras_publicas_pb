@@ -140,3 +140,4 @@ WHERE c.nomeOrgao ILIKE '%EDUCA%'
       OR c.objeto ILIKE '%GENERO%'
   )
 ORDER BY c.valorTotal DESC;
+
