@@ -71,6 +71,58 @@ PYTHONPATH=. uv run streamlit run portal/app.py
 
 ---
 
+## 🔄 Fluxo de Atualização de Dados (Automático vs. Manual)
+
+### 1. Atualização Automática (Robô / CI/CD)
+O projeto conta com automação via **GitHub Actions** configurada no arquivo [`.github/workflows/atualiza_dados.yml`](.github/workflows/atualiza_dados.yml):
+- **Periodicidade:** Toda segunda-feira às 01:00 UTC (22:00 de domingo no horário de Brasília).
+- **O que faz:**
+  1. Executa `scripts/explora_api_compras_pb.py --limite-paginas 0 --incremental` consultando a API do Governo do Estado da Paraíba para capturar novos registros do ano corrente.
+  2. Executa `src/etl/build_db.py`, que deduplica contratos, calcula matrizes teóricas e gera o arquivo consolidado `data/compras_pb.duckdb`.
+  3. Faz commit e envia (`git push`) as novas bases de dados para o repositório no GitHub (`origin/main`).
+- **Streamlit Cloud:** Detecta automaticamente o novo commit na branch `main` e reinicia o painel já com os dados atualizados.
+
+---
+
+### 2. Para Quem Trabalha Localmente
+Se você desenvolve ou roda o portal na sua máquina:
+- **Rotina semanal normal:** Você **NÃO** precisa reprocessar toda a raspagem da API. Basta sincronizar seu repositório local:
+  ```bash
+  git pull origin main
+  ```
+  Isso já trará o banco `data/compras_pb.duckdb` e os arquivos CSV brutos prontos e atualizados.
+
+---
+
+### 3. Quando e Como Fazer Atualização Manual
+
+Você só precisa rodar o pipeline manualmente se desejar:
+1. **Antecipar dados:** Buscar dados da API imediatamente sem esperar pela execução de segunda-feira.
+2. **Atualizar aditivos de contratos de anos anteriores (2024 e 2025):** Como a rotina semanal roda em modo `--incremental` (apenas ano vigente), novos aditivos assinados em 2026 para contratos de 2024/2025 requerem busca completa dos contratos.
+3. **Novas empresas / enriquecimento CNAE:** Atualizar dados cadastrais de novos CNPJs que surgiram na base.
+
+#### Passo a passo para atualização manual completa:
+
+```bash
+# 1. Extrair contratos de todos os anos (atualiza aditivos retroativos)
+uv run scripts/explora_api_compras_pb.py --limite-paginas 0 --endpoints /contratos --anos 2024 2025 2026
+
+# 2. Reconstruir a base analítica DuckDB (executa dedup_contratos.py e constrói star schema)
+PYTHONPATH=. uv run python src/etl/build_db.py
+
+# 3. Enriquecer localização e dados Receita Federal dos novos fornecedores
+PYTHONPATH=. uv run python src/etl/enriquece_fornecedores_uf.py
+
+# 4. Atualizar taxonomia CNAE, 7 setores econômicos e intensidade tecnológica
+PYTHONPATH=. uv run python src/etl/enriquece_cnae_setor.py
+
+# 5. (Opcional) Atualizar legislação do catálogo ouro
+uv run scripts/coleta_leis.py --baixar
+```
+
+
+---
+
 ## 🗂️ Estrutura de Diretórios
 
 - `/data/`: Base de dados, catálogo curado, DuckDB e CSVs/Parquets brutos e processados (`raw` e `processed`).
