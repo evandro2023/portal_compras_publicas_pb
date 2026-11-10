@@ -31,9 +31,10 @@ def load_data():
     
     # Carrega contratos para ranking de fornecedores
     query_contratos = """
-        SELECT ano_referencia, nomeOrgao, contratado, cnpjCpf, valorTotal, municipio
+        SELECT ano_referencia, nomeOrgao, numeroContrato, registroCge, contratado, cnpjCpf, valorTotal, municipio
         FROM contratos
         WHERE valorTotal IS NOT NULL
+        ORDER BY valorTotal DESC
     """
     df_contratos = conn.execute(query_contratos).df()
     
@@ -49,14 +50,14 @@ except Exception as e:
 # --- FILTROS LATERAIS ---
 st.sidebar.header("Filtros Analíticos")
 
-# Filtro de Ano
-anos_disponiveis = sorted(df_contratacoes['ano_referencia'].dropna().unique().tolist())
+# Filtro de Ano (unificado)
+anos_disponiveis = sorted(list(set(df_contratacoes['ano_referencia'].dropna().unique()) | set(df_contratos['ano_referencia'].dropna().unique())))
 if not anos_disponiveis:
     anos_disponiveis = [2024, 2025, 2026] # fallback
 ano_selecionado = st.sidebar.selectbox("Ano de Referência", ["Todos"] + anos_disponiveis)
 
-# Filtro de Órgão
-orgaos_disponiveis = sorted(df_contratacoes['nomeOrgao'].dropna().unique().tolist())
+# Filtro de Órgão (unificado entre contratações e contratos para incluir entidades como CAGEPA)
+orgaos_disponiveis = sorted(list(set(df_contratacoes['nomeOrgao'].dropna().unique()) | set(df_contratos['nomeOrgao'].dropna().unique())))
 orgao_selecionado = st.sidebar.selectbox("Órgão", ["Todos"] + orgaos_disponiveis)
 
 # Aplica os filtros
@@ -215,12 +216,33 @@ with tab2:
 
     # --- TABELA DE DADOS ---
     st.markdown("---")
-    st.subheader("Amostra dos Dados Brutos (Contratos)")
+    st.subheader("Amostra dos Dados Brutos: 100 Maiores Contratos")
+    st.caption("Exibindo os 100 maiores contratos por valor financeiro total de acordo com os filtros aplicados, destacando os órgãos compradores e contratados.")
+    
+    colunas_exibicao = {
+        'nomeOrgao': 'Órgão Comprador',
+        'contratado': 'Fornecedor Contratado',
+        'valorTotal': 'Valor Total (R$)',
+        'numeroContrato': 'Nº Contrato',
+        'registroCge': 'Registro CGE',
+        'cnpjCpf': 'CNPJ/CPF',
+        'municipio': 'Município',
+        'ano_referencia': 'Ano'
+    }
+    
+    df_top_contratos = (
+        df_filtrado_contratos
+        .sort_values('valorTotal', ascending=False)
+        .head(100)[list(colunas_exibicao.keys())]
+        .rename(columns=colunas_exibicao)
+    )
+    
     st.dataframe(
-        df_filtrado_contratos.head(100).style.format({
-            'valorTotal': 'R$ {:,.2f}'
+        df_top_contratos.style.format({
+            'Valor Total (R$)': 'R$ {:,.2f}'
         }), 
-        use_container_width=True
+        width="stretch",
+        hide_index=True
     )
 
 with tab3:
