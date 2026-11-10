@@ -180,10 +180,16 @@ anos_list = ["Todos"] + sorted(
 )
 selected_ano = st.sidebar.selectbox("Ano do Contrato:", anos_list)
 
+orgaos_list = ["Todos"] + sorted(df_todos["nomeOrgao"].dropna().unique().tolist())
+selected_orgao = st.sidebar.selectbox("Órgão Contratante:", orgaos_list)
+
+df_base = df_todos.copy()
+
 if selected_ano != "Todos":
-    df_base = df_todos[df_todos["ano_contrato"] == selected_ano]
-else:
-    df_base = df_todos.copy()
+    df_base = df_base[df_base["ano_contrato"] == selected_ano]
+
+if selected_orgao != "Todos":
+    df_base = df_base[df_base["nomeOrgao"] == selected_orgao]
 
 if df_base.empty:
     st.warning("Nenhum registro encontrado para os filtros selecionados.")
@@ -327,7 +333,7 @@ with tab_tabela:
     df_tabela = df_base[[
         "registroCge", "numeroContrato", "nomeOrgao", "razao_social", "cnpj_clean",
         "uf", "localizacao_categoria", "setor_economico", "intensidade_tecnologica", "valorTotal"
-    ]].rename(columns={
+    ]].sort_values("valorTotal", ascending=False).rename(columns={
             "registroCge": "Registro CGE",
             "numeroContrato": "Nº Contrato",
             "nomeOrgao": "Órgão Contratante",
@@ -340,16 +346,33 @@ with tab_tabela:
             "valorTotal": "Valor Total (R$)"
     })
 
+    filtro_busca = st.text_input("🔍 Buscar por Fornecedor, CNPJ, Nº Contrato ou Registro CGE:", "")
+    if filtro_busca:
+        termo = filtro_busca.strip().lower()
+        df_tabela = df_tabela[
+            df_tabela["Razão Social Fornecedor"].astype(str).str.lower().str.contains(termo) |
+            df_tabela["CNPJ"].astype(str).str.contains(termo) |
+            df_tabela["Nº Contrato"].astype(str).str.lower().str.contains(termo) |
+            df_tabela["Registro CGE"].astype(str).str.lower().str.contains(termo)
+        ]
+
     st.dataframe(
         df_tabela,
         column_config={
             "Valor Total (R$)": st.column_config.NumberColumn(format="R$ %,.2f")
         },
+        width="stretch",
         hide_index=True
     )
+    
+    csv_filename = "contratos_perfil_produtivo.csv"
+    if selected_orgao != "Todos":
+        sufixo = "".join(c for c in selected_orgao[:20] if c.isalnum() or c == "_").lower()
+        csv_filename = f"contratos_{sufixo}_{selected_ano}.csv"
+
     st.download_button(
         "⬇️ Baixar CSV",
         df_tabela.to_csv(index=False, sep=";", decimal=",").encode("utf-8-sig"),
-        file_name="contratos_perfil_produtivo.csv",
+        file_name=csv_filename,
         mime="text/csv",
     )
