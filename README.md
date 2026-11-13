@@ -131,24 +131,29 @@ uv run scripts/coleta_leis.py --baixar
 - `/src/etl/`: Lógica de transformação, enriquecimento socioeconômico e carga (`build_db.py`, `dedup_contratos.py`, `cnae_catalog.py`, `enriquecimento_socioeconomico.py`, `enriquece_fornecedores_uf.py`, `enriquece_cnae_setor.py`).
 - `/portal/`: Aplicação interativa web Streamlit (Painel Multipage).
   - `app.py`: Página inicial (Home) com apresentação do projeto e equipe.
-  - `pages/1_🛍️_Compras_Publicas.py`: Módulo 1 (Dashboard de Contratações, Contratos e Fornecedores).
+  - `pages/1_🛍️_Compras_Publicas.py`: Módulo 1 (Dashboard de Contratações, Contratos e Fornecedores com Top 100 maiores contratos ordenados por valor).
   - `pages/2_⚖️_Base_Legal.py`: Módulo 2 (Matrizes de IAAN, Comparação PBxSE e Aderência Teórica).
   - `pages/3_📈_Dados_Socioeconomicos.py`: Módulo 3 (Matriz de Associação Compras x Emprego, Retenção Territorial de Renda por UF, Evolução Mensal do CAGED e Rankings por Classe CNAE).
   - `pages/4_📝_Curadoria_Manual.py`: Módulo 4 (Interface de Login e Curadoria para Triagem, Revisão e Validação da Base Oficial).
-  - `pages/5_🏭_Perfil_Produtivo_CNAE.py`: Módulo 5 (Análise por CNAE, CNPJ, Localização Geográfica, 7 Setores Econômicos e Intensidade Tecnológica OCDE/IBGE).
+  - `pages/5_🏭_Perfil_Produtivo_CNAE.py`: Módulo 5 (Análise por CNAE, CNPJ, Localização Geográfica, 7 Setores Econômicos, Intensidade Tecnológica OCDE/IBGE, com filtros por Órgão Contratante, Modalidade de Compra e Porte ME/EPP).
+- `/outputs/`: Relatórios gerenciais e extrações analíticas.
+  - `outputs/relatorio/`: Relatórios técnicos executivos consolidados em PDF e HTML (`relatorio_analise_gt_compras_pb.pdf` para o Grupo de Trabalho).
+  - `outputs/tables/`: Extrações tabulares completas em XLS (`bens_servicos_nivel_contratos.xls`, `bens_servicos_itens_contratados.xls`, `dados_consolidado.xls`).
+  - `outputs/merenda/`: Análise exploratória sobre PNAE / Merenda Escolar na Secretaria de Educação.
+  - `outputs/validacao_cagepa/`: Relatórios de conferência cruzada CAGEPA x Diário Oficial.
 - `/documentacao/`: Referenciais teóricos, relatórios em PDF e guia de ingestão do CAGED (`estrategia_ingestao_caged.md`).
 
 ---
 
 ## 📈 Status de Desenvolvimento
 
-- **[✓] Banco Analítico (DuckDB):** Estruturado com tabelas de compras, matrizes teóricas, séries do CAGED, dimensões geográficas e visão `vw_analise_compras_cnae_localizacao`.
-- **[✓] Módulo 1 (Compras Públicas):** Implementado com consultas SQL rápidas e painéis interativos.
+- **[✓] Banco Analítico (DuckDB):** Estruturado com tabelas de compras, matrizes teóricas, séries do CAGED, dimensões geográficas e visão `vw_analise_compras_cnae_localizacao`. Resiliência de concorrência com fallback automático de leitura em `portal/utils.py`.
+- **[✓] Módulo 1 (Compras Públicas):** Implementado com consultas SQL rápidas, ranking dos Top 100 maiores contratos e filtros sincronizados de órgãos (incluindo estatais como CAGEPA).
 - **[✓] Módulo 2 (Base Legal):** Matrizes visuais de IAAN e comparativo PB x SE.
 - **[✓] Módulo 3 (Dados Econômicos - CAGED & Retenção Territorial):** Mapeamento por Classe CNAE, Matriz de Associação Compras x Emprego e Taxa de Retenção Territorial de Renda por UF.
 - **[✓] Módulo 4 (Curadoria Manual):** Módulo restrito com autenticação para revisão e homologação de normas para a base oficial.
-- **[✓] Módulo 5 (Perfil Produtivo & CNAE):** Mapeamento por CNPJ, CNAE, Localização (Capital PB, Interior PB, Nordeste, Fora do Nordeste), 7 Setores Econômicos e Intensidade Tecnológica OCDE/IBGE.
-
+- **[✓] Módulo 5 (Perfil Produtivo & CNAE):** Mapeamento por CNPJ, CNAE, Localização (Capital PB, Interior PB, Nordeste, Fora do Nordeste), 7 Setores Econômicos e Intensidade Tecnológica OCDE/IBGE. Inclui filtros por Órgão, Modalidade de Compra, Porte Empresarial (ME/EPP) e KPI de participação de MPEs.
+- **[✓] Atendimento às Demandas do Grupo de Trabalho (GT):** Consultas analíticas multidimensionais cruzando bens e serviços, CNAE, OCDE, CNPJ, Órgãos, Modalidades e enquadramento de Micro e Pequenas Empresas (ME/EPP). Relatório executivo formalizado em PDF (`outputs/relatorio/relatorio_analise_gt_compras_pb.pdf`).
 - **[✓] Qualidade da base de contratos:** deduplicação por contrato (`src/etl/dedup_contratos.py`, chave `registroCge` ou `urlContrato` para contratos do PNCP); aditivos e apostilas já consolidados em `valorTotal`; validação cruzada com a planilha da CAGEPA (`scripts/valida_cagepa_planilha.py`, relatórios em `outputs/validacao_cagepa/`). Base atual: 15.352 contratos únicos.
 - **[ ] Auditoria pendente:** `contratacoes` e `itens_contratacoes` (duplicidades) e `dim_contratacoes_macro`.
 - **[ ] Próximos Módulos:** Incorporação do PIB municipal e VAB (Valor Adicionado Bruto).

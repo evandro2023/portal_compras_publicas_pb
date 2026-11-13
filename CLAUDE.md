@@ -428,3 +428,27 @@ Relatórios:
 - **Recarga e reconstrução do DuckDB (03/11/2026):** `contratos.csv` recarregado integralmente da API (17.757 registros, 2024–2026) → `build_db.py` → 15.352 contratos únicos; `dim_fornecedores_uf` ampliada para 5.033 fornecedores; `enriquece_cnae_setor.py` e `dim_fornecedores_uf_resumo` recalculados. Conferência: CAGEPA = 776 contratos / R$ 8.362.342.134,25, idêntico ao retorno da API.
 - **Expansão do Catálogo Curado de Leis e Decretos (03/11/2026):** raspagem e curadoria normativa na Central de Compras da PB (`scripts/coleta_leis.py` com sanitização e encoding de URLs). Adicionados 11 novos atos normativos estaduais ao catálogo oficial (`data/catalogo_curado_leis.csv`, totalizando 42 normas), com download e cálculo de hash SHA256 em `data/leis/estaduais/pb/` (Decretos 43.759, 44.383, 44.639, 44.966; INs SEAD 001/2023, 002/2023, 003/2023, 001/2024; RICCS PBSAUDE; ON 001/2021; OT CJ 001/2024). Tabela `leis_catalogo` no DuckDB e enriquecimento socioeconômico sincronizados.
 - **Cuidados / pendências:** (1) número de contrato **não é único** no estado (ex.: `0002/2024` em vários órgãos) — cruzamentos devem usar órgão ou fornecedor; (2) `contratacoes` e `itens_contratacoes` ainda **não foram auditadas** quanto a duplicidades (próxima etapa), assim como `dim_contratacoes_macro`; (3) `dim_contratos_fornecedor_uf` não é usada pelo código e não foi recalculada; (4) **Módulo PNAE / Merenda Escolar na Educação** aguardando validação do Grupo de Trabalho para integração com página dedicada no Streamlit (estudos prontos em `outputs/merenda/`).
+
+## Histórico de Decisões Técnicas (Etapa 5 - Atendimento às Demandas do GT: Modalidades, ME/EPP e Relatório Técnico Executivo)
+
+- **Demandas do Grupo de Trabalho (GT):**
+  1. Identificação de bens e serviços contratados por valor, CNAE, intensidade tecnológica OCDE e localização por CNPJ;
+  2. Filtros e recortes por ano e órgão público contratante;
+  3. Modalidade de compras utilizada (Pregão, Concorrência, Dispensa, Inexigibilidade, Regulamento de Estatais);
+  4. Identificação das empresas enquadradas como Micro e Pequenas Empresas (ME/EPP).
+- **Consultas SQL e Extrações Tabulares (`outputs/tables/`):**
+  - `bens_servicos_nivel_contratos.xls` (15.357 contratos): Base contratual completa cruzada com `dim_fornecedores_cnae` e `contratacoes` (R$ 30,57 bilhões).
+  - `bens_servicos_itens_contratados.xls` (43.440 itens): Detalhamento máximo no nível de cada item licitado homologado (R$ 33,28 bilhões).
+  - `dados_consolidado.xls` (181 matrizes multidimensionais): Cruzamento Ano &times; Modalidade &times; OCDE &times; Porte ME/EPP.
+- **Aprimoramentos no Módulo 5 (`5_🏭_Perfil_Produtivo_CNAE.py`):**
+  - **Filtros na Barra Lateral:** Adicionados seletores para *Órgão Contratante*, *Modalidade de Compra* e *Porte (ME/EPP)* (`Sim (ME/EPP)`, `Não (Média/Grande)`, `Não Identificado / PF`).
+  - **KPIs do Topo:** Adicionada métrica de *Participação ME/EPP* com percentual e volume financeiro sob os filtros aplicados.
+  - **Tabela Detalhada (Aba 4):** Incluídas as colunas *Modalidade* e *Porte (ME/EPP)*, com busca textual expandida e download de CSV contextualizado.
+- **Resiliência de Concorrência no DuckDB (`portal/utils.py`):**
+  - Implementado fallback automático com snapshot temporário em `/tmp` na função `get_db_connection()` para contornar bloqueios exclusivos de arquivo quando o banco está aberto simultaneamente no DBeaver.
+- **Relatório Executivo em PDF para o GT (`outputs/relatorio/`):**
+  - Desenvolvido o script `scripts/gera_relatorio_gt_pdf.py` utilizando `weasyprint 70.0`.
+  - Produzido o relatório oficial `outputs/relatorio/relatorio_analise_gt_compras_pb.pdf` (5 páginas A4 em layout institucional com KPIs, tabelas de distribuição, rankings e recomendações) e sua versão `outputs/relatorio/relatorio_analise_gt_compras_pb.html`.
+- **Destaques Empíricos para o GT:**
+  - *Participação de ME/EPP:* 54,05% dos contratos e 60,67% dos itens homologados pertencem a MPEs, somando R$ 8,28 bilhões em contratos e R$ 10,36 bilhões em itens.
+  - *Retenção Territorial Paraibana:* 67,88% dos recursos (R$ 20,75 bilhões) circulam diretamente na Paraíba (36,11% Capital João Pessoa e 31,77% Interior).
