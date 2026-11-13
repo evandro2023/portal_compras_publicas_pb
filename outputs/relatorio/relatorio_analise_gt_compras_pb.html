@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Relatório Analítico de Compras Públicas - GT Paraíba</title>
+<style>
+    @page {
+        size: A4 portrait;
+        margin: 20mm 15mm 20mm 15mm;
+        @bottom-right {
+            content: "Página " counter(page) " de " counter(pages);
+            font-size: 8pt;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #7f8c8d;
+        }
+        @bottom-left {
+            content: "Portal de Compras Públicas PB | Grupo de Trabalho (GT)";
+            font-size: 8pt;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            color: #7f8c8d;
+        }
+    }
+    
+    body {
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+        color: #2c3e50;
+        line-height: 1.45;
+        font-size: 9.5pt;
+    }
+
+    .header-box {
+        border-bottom: 2px solid #2980b9;
+        padding-bottom: 12px;
+        margin-bottom: 18px;
+    }
+    
+    .institucional {
+        font-size: 8.5pt;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #7f8c8d;
+        font-weight: bold;
+        margin-bottom: 4px;
+    }
+
+    h1 {
+        font-size: 16pt;
+        color: #1a365d;
+        margin: 6px 0 4px 0;
+        line-height: 1.25;
+    }
+
+    .subtitle {
+        font-size: 10pt;
+        color: #4a5568;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .meta-date {
+        font-size: 8.5pt;
+        color: #718096;
+    }
+
+    .card-kpi-container {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+
+    .kpi-card {
+        flex: 1;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-left: 4px solid #3182ce;
+        border-radius: 4px;
+        padding: 8px 10px;
+    }
+
+    .kpi-title {
+        font-size: 7.5pt;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: bold;
+        margin-bottom: 2px;
+    }
+
+    .kpi-value {
+        font-size: 13pt;
+        font-weight: bold;
+        color: #1e293b;
+    }
+
+    .kpi-sub {
+        font-size: 7.5pt;
+        color: #059669;
+        font-weight: 600;
+    }
+
+    h2 {
+        font-size: 12pt;
+        color: #1e3a8a;
+        border-bottom: 1.5px solid #e2e8f0;
+        padding-bottom: 4px;
+        margin-top: 18px;
+        margin-bottom: 8px;
+        page-break-after: avoid;
+    }
+
+    h3 {
+        font-size: 10pt;
+        color: #2b6cb0;
+        margin-top: 12px;
+        margin-bottom: 6px;
+        page-break-after: avoid;
+    }
+
+    p {
+        margin: 0 0 8px 0;
+        text-align: justify;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 8px 0 14px 0;
+        font-size: 8pt;
+        page-break-inside: avoid;
+    }
+
+    th {
+        background-color: #2b6cb0;
+        color: #ffffff;
+        font-weight: 600;
+        text-align: left;
+        padding: 5px 6px;
+        border: 1px solid #2b6cb0;
+    }
+
+    td {
+        padding: 4px 6px;
+        border: 1px solid #e2e8f0;
+    }
+
+    tr:nth-child(even) td {
+        background-color: #f8fafc;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .badge-me {
+        background-color: #dcfce7;
+        color: #166534;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-weight: bold;
+        font-size: 7.5pt;
+    }
+
+    .badge-grande {
+        background-color: #e0f2fe;
+        color: #0369a1;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-weight: bold;
+        font-size: 7.5pt;
+    }
+
+    .box-destaque {
+        background-color: #eff6ff;
+        border-left: 4px solid #2563eb;
+        padding: 8px 12px;
+        margin: 10px 0;
+        font-size: 8.5pt;
+        border-radius: 2px;
+    }
+
+    .page-break {
+        page-break-before: always;
+    }
+</style>
+</head>
+<body>
+
+<div class="header-box">
+    <div class="institucional">UFPB / SUDENE / Governo do Estado da Paraíba | Grupo de Trabalho (GT)</div>
+    <h1>Relatório Analítico de Compras Públicas</h1>
+    <div class="subtitle">Perfil Produtivo, Bens e Serviços, Modalidades Licitatórias e Impacto de Micro e Pequenas Empresas (ME/EPP)</div>
+    <div class="meta-date">Período Analisado: 2024 a 2026 | Fonte dos Dados: Central de Compras PB / CGE-PB / MinhaReceita / IBGE / OCDE</div>
+</div>
+
+<div class="card-kpi-container">
+    <div class="kpi-card">
+        <div class="kpi-title">Volume Total Contratado</div>
+        <div class="kpi-value">R$ 30.574.403.119,12</div>
+        <div class="kpi-sub">15.357 Contratos Analisados</div>
+    </div>
+    <div class="kpi-card" style="border-left-color: #16a34a;">
+        <div class="kpi-title">Participação ME / EPP</div>
+        <div class="kpi-value">R$ 8.284.335.404,83</div>
+        <div class="kpi-sub">54,1% dos Contratos | 27,1% do Valor</div>
+    </div>
+    <div class="kpi-card" style="border-left-color: #d97706;">
+        <div class="kpi-title">Retenção Territorial PB</div>
+        <div class="kpi-value">67,88%</div>
+        <div class="kpi-sub">R$ 20,75 Bi na Economia da Paraíba</div>
+    </div>
+    <div class="kpi-card" style="border-left-color: #9333ea;">
+        <div class="kpi-title">Itens Homologados</div>
+        <div class="kpi-value">43.440</div>
+        <div class="kpi-sub">R$ 33.281.034.388,32</div>
+    </div>
+</div>
+
+<h2>1. Síntese Executiva & Mapeamento de Fontes</h2>
+<p>
+Este relatório atende às demandas de levantamento formuladas pelo <strong>Grupo de Trabalho (GT)</strong> encarregado da avaliação do <em>Portal de Compras Públicas do Estado da Paraíba</em>. O objetivo central é mapear com precisão cirúrgica a aplicação dos recursos públicos estaduais sob quatro eixos interligados: <strong>(1)</strong> Bens e serviços demandados, CNAE e Intensidade Tecnológica (Taxonomia OCDE); <strong>(2)</strong> Evolução temporal por ano e órgão público contratante; <strong>(3)</strong> Modalidade licitatória utilizada; e <strong>(4)</strong> Identificação da participação de <strong>Micro e Pequenas Empresas (ME/EPP)</strong> como vetor de indução econômica regional.
+</p>
+<p>
+Os dados sintetizados neste relatório provêm diretamente de três planilhas estruturadas e auditadas, disponibilizadas na pasta <code>outputs/tables/</code> do projeto:
+</p>
+<ul>
+    <li><strong><code>bens_servicos_nivel_contratos.xls</code> (15.357 contratos):</strong> Contém a base integral dos instrumentos contratuais formalizados no Estado da Paraíba, cruzados com CNPJ, CNAE, setor IBGE, nível tecnológico OCDE, órgão, modalidade e porte ME/EPP.</li>
+    <li><strong><code>bens_servicos_itens_contratados.xls</code> (43.440 itens):</strong> Apresenta a granularidade máxima de bens e serviços licitados, contendo descrição técnica, quantidade, valor unitário homologado e valor total.</li>
+    <li><strong><code>dados_consolidado.xls</code> (181 matrizes multidimensionais):</strong> Cruzamento tabular das dimensões Ano &times; Modalidade &times; OCDE &times; Porte ME/EPP.</li>
+</ul>
+
+<div class="box-destaque">
+    <strong>Destaque Metodológico:</strong> Foram identificados <strong>8.301 contratos com Micro e Pequenas Empresas (ME/EPP)</strong>, equivalendo a <strong>54,05%</strong> de todos os contratos celebrados pelo Estado. No nível de itens homologados, a taxa de sucesso das MPEs alcança expressivos <strong>60,67% (26.357 itens)</strong>, comprovando o papel distributivo das compras públicas paraibanas.
+</div>
+
+<h2>2. Participação de Micro e Pequenas Empresas (ME/EPP)</h2>
+<p>
+A tabela a seguir discrimina a participação das empresas contratadas com base no enquadramento oficial de porte fornecido pela Receita Federal (RFB).
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Porte Empresarial (Enquadramento RFB)</th>
+            <th class="text-center">Qtd. Contratos</th>
+            <th class="text-center">Part. Contratos (%)</th>
+            <th class="text-right">Volume Financeiro (R$)</th>
+            <th class="text-right">Part. Financeira (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+            <td><span class="badge-grande">Comércio</span></td>
+            <td class="text-center">0</td>
+            <td class="text-center">0.00%</td>
+            <td class="text-right">R$ 0,00</td>
+            <td class="text-right">0.00%</td>
+        </tr>
+        
+        <tr>
+            <td><span class="badge-grande">Indústria de Transformação</span></td>
+            <td class="text-center">0</td>
+            <td class="text-center">0.00%</td>
+            <td class="text-right">R$ 0,00</td>
+            <td class="text-right">0.00%</td>
+        </tr>
+        
+        <tr>
+            <td><span class="badge-grande">Não (Média/Grande)</span></td>
+            <td class="text-center">6.472</td>
+            <td class="text-center">42.14%</td>
+            <td class="text-right">R$ 22.113.285.082,44</td>
+            <td class="text-right">72.33%</td>
+        </tr>
+        
+        <tr>
+            <td><span class="badge-grande">Não Identificado / PF</span></td>
+            <td class="text-center">574</td>
+            <td class="text-center">3.74%</td>
+            <td class="text-right">R$ 176.782.631,85</td>
+            <td class="text-right">0.58%</td>
+        </tr>
+        
+        <tr>
+            <td><span class="badge-grande">Serviços</span></td>
+            <td class="text-center">0</td>
+            <td class="text-center">0.00%</td>
+            <td class="text-right">R$ 0,00</td>
+            <td class="text-right">0.00%</td>
+        </tr>
+        
+        <tr>
+            <td><span class="badge-me">Sim (ME/EPP)</span></td>
+            <td class="text-center">8.301</td>
+            <td class="text-center">54.05%</td>
+            <td class="text-right">R$ 8.284.335.404,83</td>
+            <td class="text-right">27.10%</td>
+        </tr>
+        
+        <tr style="font-weight: bold; background-color: #edf2f7;">
+            <td>TOTAL GERAL</td>
+            <td class="text-center">15.357</td>
+            <td class="text-center">100,00%</td>
+            <td class="text-right">R$ 30.574.403.119,12</td>
+            <td class="text-right">100,00%</td>
+        </tr>
+    </tbody>
+</table>
+
+<p>
+<strong>Análise Comparativa Itens vs. Contratos:</strong> Enquanto nas grandes obras e concessões predominam médias e grandes empresas (responsáveis por 72,33% do valor contratado total), as Micro e Pequenas Empresas dominam a aquisição de suprimentos, bens e serviços essenciais (abocanhando <strong>R$ 8,28 bilhões</strong> em contratos e <strong>R$ 10,36 bilhões</strong> no nível de itens homologados).
+</p>
+
+<div class="page-break"></div>
+
+<h2>3. Distribuição por Modalidade de Compra Pública</h2>
+<p>
+A distribuição das contratações por modalidade revela a predominância do <strong>Pregão Eletrônico</strong> e da <strong>Concorrência Eletrônica</strong> nos processos concorrenciais, além do peso dos contratos firmados pelas <strong>Estatais e Fundações</strong> regidos pela Lei Federal nº 13.303/2016 (ex: CAGEPA, PB Saúde e DER).
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Modalidade de Compra</th>
+            <th class="text-center">Qtd. Contratos</th>
+            <th class="text-right">Volume Financeiro (R$)</th>
+            <th class="text-right">Participação (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+
+            <tr>
+                <td>Não informada / Sistema Próprio (Estatais)</td>
+                <td class="text-center">7.557</td>
+                <td class="text-right">R$ 20.030.466.532,48</td>
+                <td class="text-right">65.51%</td>
+            </tr>
+            
+            <tr>
+                <td>CONCORRÊNCIA - ELETRÔNICA</td>
+                <td class="text-center">215</td>
+                <td class="text-right">R$ 2.966.647.535,96</td>
+                <td class="text-right">9.70%</td>
+            </tr>
+            
+            <tr>
+                <td>PREGÃO ELETRÔNICO</td>
+                <td class="text-center">2.491</td>
+                <td class="text-right">R$ 2.581.170.064,41</td>
+                <td class="text-right">8.44%</td>
+            </tr>
+            
+            <tr>
+                <td>INEXIGIBILIDADE</td>
+                <td class="text-center">1.320</td>
+                <td class="text-right">R$ 2.128.513.736,20</td>
+                <td class="text-right">6.96%</td>
+            </tr>
+            
+            <tr>
+                <td>DISPENSA DE LICITAÇÃO</td>
+                <td class="text-center">3.490</td>
+                <td class="text-right">R$ 1.749.775.434,57</td>
+                <td class="text-right">5.72%</td>
+            </tr>
+            
+            <tr>
+                <td>ADESÃO EXTERNA</td>
+                <td class="text-center">249</td>
+                <td class="text-right">R$ 701.776.179,14</td>
+                <td class="text-right">2.30%</td>
+            </tr>
+            
+            <tr>
+                <td>CONCORRÊNCIA - PRESENCIAL</td>
+                <td class="text-center">20</td>
+                <td class="text-right">R$ 415.973.636,36</td>
+                <td class="text-right">1.36%</td>
+            </tr>
+            
+            <tr>
+                <td>CHAMAMENTO PÚBLICO</td>
+                <td class="text-center">5</td>
+                <td class="text-right">R$ 80.000,00</td>
+                <td class="text-right">0.00%</td>
+            </tr>
+            
+    </tbody>
+</table>
+
+<h2>4. Perfil Produtivo (Setores Econômicos e Intensidade OCDE)</h2>
+<p>
+A classificação socioeconômica segundo os 7 grandes setores do IBGE e a intensidade tecnológica da OCDE demonstra forte concentração em <strong>Serviços</strong>, <strong>Construção Civil</strong> e <strong>Serviços Industriais de Utilidade Pública (SIUP)</strong>.
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Setor Econômico (IBGE / CNAE)</th>
+            <th class="text-center">Qtd. Contratos</th>
+            <th class="text-right">Volume Financeiro (R$)</th>
+            <th class="text-right">Participação (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+
+            <tr>
+                <td>Serviços</td>
+                <td class="text-center">3.961</td>
+                <td class="text-right">R$ 12.705.704.856,77</td>
+                <td class="text-right">41.56%</td>
+            </tr>
+            
+            <tr>
+                <td>Construção Civil</td>
+                <td class="text-center">894</td>
+                <td class="text-right">R$ 7.265.699.663,58</td>
+                <td class="text-right">23.76%</td>
+            </tr>
+            
+            <tr>
+                <td>Serviços Industriais de Utilidade Pública (SIUP)</td>
+                <td class="text-center">50</td>
+                <td class="text-right">R$ 6.145.576.862,23</td>
+                <td class="text-right">20.10%</td>
+            </tr>
+            
+            <tr>
+                <td>Comércio</td>
+                <td class="text-center">8.130</td>
+                <td class="text-right">R$ 2.632.543.263,24</td>
+                <td class="text-right">8.61%</td>
+            </tr>
+            
+            <tr>
+                <td>Indústria de Transformação</td>
+                <td class="text-center">1.738</td>
+                <td class="text-right">R$ 1.648.095.841,45</td>
+                <td class="text-right">5.39%</td>
+            </tr>
+            
+            <tr>
+                <td>Não Classificado</td>
+                <td class="text-center">20</td>
+                <td class="text-right">R$ 67.382.583,08</td>
+                <td class="text-right">0.22%</td>
+            </tr>
+            
+    </tbody>
+</table>
+
+<h3>Classificação por Intensidade Tecnológica (Critério OCDE)</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Intensidade Tecnológica (OCDE)</th>
+            <th class="text-center">Qtd. Contratos</th>
+            <th class="text-right">Volume Financeiro (R$)</th>
+            <th class="text-right">Participação (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+
+            <tr>
+                <td>Serviços e Outros (Não-Industrial)</td>
+                <td class="text-center">12.658</td>
+                <td class="text-right">R$ 27.884.301.228,96</td>
+                <td class="text-right">91.20%</td>
+            </tr>
+            
+            <tr>
+                <td>Alta Intensidade Tecnológica (Serviços KIS)</td>
+                <td class="text-center">357</td>
+                <td class="text-right">R$ 817.820.304,93</td>
+                <td class="text-right">2.67%</td>
+            </tr>
+            
+            <tr>
+                <td>Média-Alta Intensidade Tecnológica</td>
+                <td class="text-center">395</td>
+                <td class="text-right">R$ 587.773.115,93</td>
+                <td class="text-right">1.92%</td>
+            </tr>
+            
+            <tr>
+                <td>Baixa Intensidade Tecnológica</td>
+                <td class="text-center">577</td>
+                <td class="text-right">R$ 554.959.194,26</td>
+                <td class="text-right">1.82%</td>
+            </tr>
+            
+            <tr>
+                <td>Alta Intensidade Tecnológica</td>
+                <td class="text-center">316</td>
+                <td class="text-right">R$ 330.984.984,31</td>
+                <td class="text-right">1.08%</td>
+            </tr>
+            
+            <tr>
+                <td>Média-Baixa Intensidade Tecnológica</td>
+                <td class="text-center">470</td>
+                <td class="text-right">R$ 221.781.658,88</td>
+                <td class="text-right">0.73%</td>
+            </tr>
+            
+            <tr>
+                <td>Não Classificado</td>
+                <td class="text-center">20</td>
+                <td class="text-right">R$ 67.382.583,08</td>
+                <td class="text-right">0.22%</td>
+            </tr>
+            
+    </tbody>
+</table>
+
+<div class="page-break"></div>
+
+<h2>5. Retenção Territorial de Renda (Localização por CNPJ)</h2>
+<p>
+O cruzamento geográfico do domicílio fiscal dos fornecedores contratados indica que <strong>67,88%</strong> de todos os recursos despendidos pelo Estado permanecem no território paraibano, com forte equilíbrio entre a <strong>Capital (João Pessoa)</strong> e o <strong>Interior do Estado</strong>.
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Categoria de Localização do Fornecedor</th>
+            <th class="text-center">Qtd. Contratos</th>
+            <th class="text-right">Volume Financeiro (R$)</th>
+            <th class="text-right">Participação (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+
+            <tr>
+                <td><strong>Capital (PB)</strong></td>
+                <td class="text-center">4.115</td>
+                <td class="text-right">R$ 11.040.826.384,30</td>
+                <td class="text-right">36.11%</td>
+            </tr>
+            
+            <tr>
+                <td><strong>Interior (PB)</strong></td>
+                <td class="text-center">3.019</td>
+                <td class="text-right">R$ 9.714.164.479,59</td>
+                <td class="text-right">31.77%</td>
+            </tr>
+            
+            <tr>
+                <td><strong>Nordeste (Demais UFs)</strong></td>
+                <td class="text-center">3.283</td>
+                <td class="text-right">R$ 5.108.312.273,43</td>
+                <td class="text-right">16.71%</td>
+            </tr>
+            
+            <tr>
+                <td><strong>Fora do Nordeste</strong></td>
+                <td class="text-center">4.376</td>
+                <td class="text-right">R$ 4.601.699.933,03</td>
+                <td class="text-right">15.05%</td>
+            </tr>
+            
+    </tbody>
+</table>
+
+<h2>6. Maiores Contratações e Órgãos Contratantes</h2>
+
+<h3>Top 5 Maiores Órgãos Compradores por Volume Financeiro</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Órgão Público Contratante</th>
+            <th class="text-center">Contratos</th>
+            <th class="text-right">Volume Financeiro (R$)</th>
+            <th class="text-right">Part. (%)</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+            <td>COMPANHIA DE ÁGUA E ESGOTOS DO ESTADO DA PARAÍBA</td>
+            <td class="text-center">776</td>
+            <td class="text-right">R$ 8.362.342.134,25</td>
+            <td class="text-right">27.35%</td>
+        </tr>
+        
+        <tr>
+            <td>FUNDAÇÃO PARAIBANA DE GESTÃO EM SAÚDE</td>
+            <td class="text-center">2.728</td>
+            <td class="text-right">R$ 5.900.278.387,41</td>
+            <td class="text-right">19.30%</td>
+        </tr>
+        
+        <tr>
+            <td>DEPARTAMENTO DE ESTRADAS DE RODAGEM</td>
+            <td class="text-center">165</td>
+            <td class="text-right">R$ 3.253.078.284,12</td>
+            <td class="text-right">10.64%</td>
+        </tr>
+        
+        <tr>
+            <td>SECRETARIA DE ESTADO DA SAUDE - SES</td>
+            <td class="text-center">2.200</td>
+            <td class="text-right">R$ 2.698.745.321,15</td>
+            <td class="text-right">8.83%</td>
+        </tr>
+        
+        <tr>
+            <td>SECRETARIA DE ESTADO DA EDUCAÇÃO</td>
+            <td class="text-center">849</td>
+            <td class="text-right">R$ 1.866.999.942,51</td>
+            <td class="text-right">6.11%</td>
+        </tr>
+        
+    </tbody>
+</table>
+
+<h3>Amostra dos Maiores Contratos Firmados (Base: bens_servicos_nivel_contratos.xls)</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Fornecedor Contratado</th>
+            <th>Órgão Comprador</th>
+            <th class="text-center">Porte</th>
+            <th class="text-center">Modalidade</th>
+            <th class="text-right">Valor Total (R$)</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        <tr>
+            <td><strong>CONCESSIONÁRIA ACCIONA ÁGUA PARAÍBA SPE S.A.</strong></td>
+            <td>COMPANHIA DE ÁGUA E ESGOTOS DO ESTA</td>
+            <td class="text-center"><span class="badge-grande">Não (Média/Grande)</span></td>
+            <td class="text-center">Estatais/Próprio</td>
+            <td class="text-right">R$ 6.068.735.588,41</td>
+        </tr>
+        
+        <tr>
+            <td><strong>DURAM SAUDE LTDA</strong></td>
+            <td>FUNDAÇÃO PARAIBANA DE GESTÃO EM SAÚ</td>
+            <td class="text-center"><span class="badge-me">Sim (ME/EPP)</span></td>
+            <td class="text-center">Estatais/Próprio</td>
+            <td class="text-right">R$ 4.664.022.662,00</td>
+        </tr>
+        
+        <tr>
+            <td><strong>CONSORCIO JAMPA</strong></td>
+            <td>DEPARTAMENTO DE ESTRADAS DE RODAGEM</td>
+            <td class="text-center"><span class="badge-grande">Não (Média/Grande)</span></td>
+            <td class="text-center">Estatais/Próprio</td>
+            <td class="text-right">R$ 669.526.278,43</td>
+        </tr>
+        
+        <tr>
+            <td><strong>FUNDAÇÃO PARAIBANA DE GESTÃO EM SAÚDE - PB SAÚDE</strong></td>
+            <td>SECRETARIA DE ESTADO DA SAUDE - SES</td>
+            <td class="text-center"><span class="badge-grande">Não (Média/Grande)</span></td>
+            <td class="text-center">INEXIGIBILIDADE</td>
+            <td class="text-right">R$ 354.962.722,56</td>
+        </tr>
+        
+        <tr>
+            <td><strong>SOLSERV SERVICOS LTDA</strong></td>
+            <td>SECRETARIA DE ESTADO DA EDUCAÇÃO</td>
+            <td class="text-center"><span class="badge-grande">Não (Média/Grande)</span></td>
+            <td class="text-center">PREGÃO ELETRÔNICO</td>
+            <td class="text-right">R$ 271.020.934,56</td>
+        </tr>
+        
+        <tr>
+            <td><strong>CONSOSRCIO TRANSPARAIBA 2</strong></td>
+            <td>SECRETARIA DE ESTADO DA INFRAESTRUT</td>
+            <td class="text-center"><span class="badge-grande">Não (Média/Grande)</span></td>
+            <td class="text-center">Estatais/Próprio</td>
+            <td class="text-right">R$ 270.000.000,00</td>
+        </tr>
+        
+    </tbody>
+</table>
+
+<h2>7. Conclusões e Recomendações para o GT</h2>
+<ol>
+    <li><strong>Validação das Fontes:</strong> Os três arquivos Excel gerados (<code>bens_servicos_nivel_contratos.xls</code>, <code>bens_servicos_itens_contratados.xls</code> e <code>dados_consolidado.xls</code>) respondem plenamente aos 4 quesitos levantados pelo Grupo de Trabalho.</li>
+    <li><strong>Força das ME/EPPs na Paraíba:</strong> A expressiva fatia de <strong>54,05% dos contratos e 60,67% dos itens</strong> nas mãos de micro e pequenos empreendedores comprova a capilaridade da política de compras, recomendando-se monitorar a expansão dessa participação para compras de maior intensidade tecnológica.</li>
+    <li><strong>Retenção Territorial Elevada (67,88%):</strong> A maior parte dos recursos circula na economia paraibana, impulsionando a arrecadação do ICMS e a geração de empregos locais no interior e na capital.</li>
+</ol>
+
+<hr style="border: 0; border-top: 1px solid #cbd5e1; margin-top: 25px;">
+<div style="font-size: 8pt; color: #64748b; text-align: center;">
+    Relatório gerado automaticamente pelo pipeline analítico do Portal Compras Públicas PB.<br>
+    Coordenação: Prof. Dr. Paulo Fernando Cavalcanti | Núcleo de Inteligência e Big Data (NIB / UFPB / SUDENE).
+</div>
+
+</body>
+</html>

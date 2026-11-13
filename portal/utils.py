@@ -6,13 +6,19 @@ import os
 def get_db_connection():
     """
     Retorna uma conexão com o banco DuckDB analítico do projeto.
-    Abre em modo somente leitura (read_only=True) para permitir acesso
-    simultâneo, mesmo se o DBeaver ou outro processo estiver com o banco aberto.
+    Abre em modo somente leitura (read_only=True). Se o banco estiver travado
+    por processo externo (ex: DBeaver), utiliza automaticamente um snapshot
+    temporário em /tmp para não interromper a navegação no portal.
     """
-    # Obtém o diretório base do projeto (um nível acima da pasta portal onde este utils.py está)
+    import shutil
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     db_path = os.path.join(base_dir, "data", "compras_pb.duckdb")
-    return duckdb.connect(db_path, read_only=True)
+    try:
+        return duckdb.connect(db_path, read_only=True)
+    except duckdb.IOException:
+        tmp_db = "/tmp/compras_pb_ro_cache.duckdb"
+        shutil.copy2(db_path, tmp_db)
+        return duckdb.connect(tmp_db, read_only=True)
 
 def set_page_config(page_title="Portal Compras PB"):
     """

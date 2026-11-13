@@ -44,99 +44,57 @@ def obter_dataframe_analitico(conn):
     """Garante o carregamento dos dados com resiliência a ausência de tabelas pré-computadas."""
     tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
 
-    # 1. Tenta consulta direta da view pré-computada
+    # 1. Consulta integrada com contratos, licitações (modalidade) e fornecedores (porte ME/EPP e CNAE)
+    if "contratos" in tables and "dim_fornecedores_cnae" in tables:
+        try:
+            return conn.execute("""
+                WITH licitacoes_dedup AS (
+                    SELECT 
+                        numeroProcesso,
+                        FIRST(modalidade) AS modalidade
+                    FROM contratacoes
+                    WHERE numeroProcesso IS NOT NULL
+                    GROUP BY numeroProcesso
+                )
+                SELECT 
+                    c.registroCge,
+                    c.numeroContrato,
+                    c.nomeOrgao,
+                    c.dataAssinatura,
+                    COALESCE(c.ano_referencia, YEAR(TRY_CAST(c.dataAssinatura AS DATE))) as ano_contrato,
+                    COALESCE(l.modalidade, 'Não informada / Sistema Próprio (Estatais)') as modalidade,
+                    c.valorTotal,
+                    c.contratado as nome_contratado_contrato,
+                    REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') as cnpj_clean,
+                    f.razao_social,
+                    f.uf,
+                    f.municipio as municipio_fornecedor,
+                    COALESCE(f.localizacao_categoria, 'Não Identificado') as localizacao_categoria,
+                    COALESCE(f.porte, 'N/D') as porte_receita,
+                    CASE 
+                        WHEN f.porte IN ('MICRO EMPRESA', 'EMPRESA DE PEQUENO PORTE') THEN 'Sim (ME/EPP)'
+                        WHEN f.porte = 'DEMAIS' THEN 'Não (Média/Grande)'
+                        ELSE 'Não Identificado / PF'
+                    END as is_me_epp,
+                    COALESCE(f.cnae_fiscal, 0) as cnae_fiscal,
+                    COALESCE(f.cnae_descricao, 'Não Informado') as cnae_descricao,
+                    COALESCE(f.setor_economico, 'Não Classificado') as setor_economico,
+                    COALESCE(f.intensidade_tecnologica, 'Não Classificado') as intensidade_tecnologica
+                FROM contratos c
+                LEFT JOIN licitacoes_dedup l 
+                    ON c.numeroProcessoLicitacao = l.numeroProcesso
+                LEFT JOIN dim_fornecedores_cnae f 
+                    ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = LPAD(CAST(CAST(f.cnpj AS BIGINT) AS VARCHAR), 14, '0')
+            """).df()
+        except Exception:
+            pass
+
+    # 2. Tenta consulta direta da view pré-computada se existir
     if "vw_analise_compras_cnae_localizacao" in tables:
         try:
             return conn.execute("SELECT * FROM vw_analise_compras_cnae_localizacao").df()
         except Exception:
             pass
-
-    # 2. Se dim_fornecedores_cnae existir
-    if "dim_fornecedores_cnae" in tables and "contratos" in tables:
-        conn.execute("""
-            CREATE TEMPORARY VIEW IF NOT EXISTS vw_analise_compras_cnae_localizacao AS
-            SELECT 
-                c.registroCge,
-                c.numeroContrato,
-                c.nomeOrgao,
-                c.dataAssinatura,
-                COALESCE(c.ano_referencia, YEAR(TRY_CAST(c.dataAssinatura AS DATE))) as ano_contrato,
-                c.valorTotal,
-                c.contratado as nome_contratado_contrato,
-                REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') as cnpj_clean,
-                f.razao_social,
-                f.uf,
-                f.municipio as municipio_fornecedor,
-                COALESCE(f.localizacao_categoria, 'Não Identificado') as localizacao_categoria,
-                COALESCE(f.cnae_fiscal, 0) as cnae_fiscal,
-                COALESCE(f.cnae_descricao, 'Não Informado') as cnae_descricao,
-                COALESCE(f.setor_economico, 'Não Classificado') as setor_economico,
-                COALESCE(f.intensidade_tecnologica, 'Não Classificado') as intensidade_tecnologica
-            FROM contratos c
-            LEFT JOIN dim_fornecedores_cnae f 
-                ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = LPAD(CAST(CAST(f.cnpj AS BIGINT) AS VARCHAR), 14, '0')
-        """)
-        return conn.execute("SELECT * FROM vw_analise_compras_cnae_localizacao").df()
-
-    # 3. Se dim_fornecedores_uf existir
-    if "dim_fornecedores_uf" in tables and "contratos" in tables:
-        df_forn = conn.execute("SELECT * FROM dim_fornecedores_uf").df()
-        df_forn["localizacao_categoria"] = df_forn.apply(
-            lambda r: categorizar_localizacao(r.get("uf"), r.get("municipio")), axis=1
-        )
-        df_forn["setor_economico"] = df_forn["cnae_fiscal"].apply(categorizar_setor_cnae)
-        df_forn["intensidade_tecnologica"] = df_forn["cnae_fiscal"].apply(categorizar_intensidade_tecnologica)
-
-        conn.register("temp_dim_forn", df_forn)
-        conn.execute("""
-            CREATE TEMPORARY VIEW IF NOT EXISTS vw_analise_compras_cnae_localizacao AS
-            SELECT 
-                c.registroCge,
-                c.numeroContrato,
-                c.nomeOrgao,
-                c.dataAssinatura,
-                COALESCE(c.ano_referencia, YEAR(TRY_CAST(c.dataAssinatura AS DATE))) as ano_contrato,
-                c.valorTotal,
-                c.contratado as nome_contratado_contrato,
-                REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') as cnpj_clean,
-                f.razao_social,
-                f.uf,
-                f.municipio as municipio_fornecedor,
-                COALESCE(f.localizacao_categoria, 'Não Identificado') as localizacao_categoria,
-                COALESCE(f.cnae_fiscal, 0) as cnae_fiscal,
-                COALESCE(f.cnae_descricao, 'Não Informado') as cnae_descricao,
-                COALESCE(f.setor_economico, 'Não Classificado') as setor_economico,
-                COALESCE(f.intensidade_tecnologica, 'Não Classificado') as intensidade_tecnologica
-            FROM contratos c
-            LEFT JOIN temp_dim_forn f 
-                ON REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') = LPAD(CAST(CAST(f.cnpj AS BIGINT) AS VARCHAR), 14, '0')
-        """)
-        return conn.execute("SELECT * FROM vw_analise_compras_cnae_localizacao").df()
-
-    # 4. Fallback com tabela de contratos
-    if "contratos" in tables:
-        conn.execute("""
-            CREATE TEMPORARY VIEW IF NOT EXISTS vw_analise_compras_cnae_localizacao AS
-            SELECT 
-                c.registroCge,
-                c.numeroContrato,
-                c.nomeOrgao,
-                c.dataAssinatura,
-                COALESCE(c.ano_referencia, YEAR(TRY_CAST(c.dataAssinatura AS DATE))) as ano_contrato,
-                c.valorTotal,
-                c.contratado as nome_contratado_contrato,
-                REGEXP_REPLACE(c.cnpjCpf, '[^0-9]', '', 'g') as cnpj_clean,
-                c.contratado as razao_social,
-                'PB' as uf,
-                c.municipio as municipio_fornecedor,
-                'Não Identificado' as localizacao_categoria,
-                0 as cnae_fiscal,
-                'Não Informado' as cnae_descricao,
-                'Não Classificado' as setor_economico,
-                'Não Classificado' as intensidade_tecnologica
-            FROM contratos c
-        """)
-        return conn.execute("SELECT * FROM vw_analise_compras_cnae_localizacao").df()
 
     return pd.DataFrame()
 
@@ -183,6 +141,12 @@ selected_ano = st.sidebar.selectbox("Ano do Contrato:", anos_list)
 orgaos_list = ["Todos"] + sorted(df_todos["nomeOrgao"].dropna().unique().tolist())
 selected_orgao = st.sidebar.selectbox("Órgão Contratante:", orgaos_list)
 
+modalidades_list = ["Todas"] + sorted([str(m) for m in df_todos["modalidade"].dropna().unique() if str(m).strip()])
+selected_modalidade = st.sidebar.selectbox("Modalidade de Compra:", modalidades_list)
+
+portes_list = ["Todos", "Sim (ME/EPP)", "Não (Média/Grande)", "Não Identificado / PF"]
+selected_porte = st.sidebar.selectbox("Porte (ME/EPP):", portes_list)
+
 df_base = df_todos.copy()
 
 if selected_ano != "Todos":
@@ -190,6 +154,12 @@ if selected_ano != "Todos":
 
 if selected_orgao != "Todos":
     df_base = df_base[df_base["nomeOrgao"] == selected_orgao]
+
+if selected_modalidade != "Todas":
+    df_base = df_base[df_base["modalidade"] == selected_modalidade]
+
+if selected_porte != "Todos":
+    df_base = df_base[df_base["is_me_epp"] == selected_porte]
 
 if df_base.empty:
     st.warning("Nenhum registro encontrado para os filtros selecionados.")
@@ -205,14 +175,15 @@ valor_interior = df_base[df_base["localizacao_categoria"] == "Interior (PB)"]["v
 pct_capital = (valor_capital / total_valor * 100) if total_valor > 0 else 0
 pct_interior = (valor_interior / total_valor * 100) if total_valor > 0 else 0
 
-valor_alta_tec = df_base[df_base["intensidade_tecnologica"].str.contains("Alta", na=False)]["valorTotal"].sum()
-pct_alta_tec = (valor_alta_tec / total_valor * 100) if total_valor > 0 else 0
+valor_me_epp = df_base[df_base["is_me_epp"] == "Sim (ME/EPP)"]["valorTotal"].sum()
+pct_me_epp = (valor_me_epp / total_valor * 100) if total_valor > 0 else 0
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4, col5 = st.columns(5)
 col1.metric("Valor Total Analisado", f"R$ {total_valor:,.2f}")
 col2.metric("Total de Contratos", f"{total_contratos:,}")
-col3.metric("Participação Capital (PB)", f"{pct_capital:.1f}%", f"R$ {valor_capital:,.2f}")
-col4.metric("Participação Interior (PB)", f"{pct_interior:.1f}%", f"R$ {valor_interior:,.2f}")
+col3.metric("Part. Capital (PB)", f"{pct_capital:.1f}%", f"R$ {valor_capital:,.2f}")
+col4.metric("Part. Interior (PB)", f"{pct_interior:.1f}%", f"R$ {valor_interior:,.2f}")
+col5.metric("Part. ME/EPP", f"{pct_me_epp:.1f}%", f"R$ {valor_me_epp:,.2f}")
 
 st.markdown("---")
 
@@ -331,14 +302,16 @@ with tab_tabela:
     )
 
     df_tabela = df_base[[
-        "registroCge", "numeroContrato", "nomeOrgao", "razao_social", "cnpj_clean",
-        "uf", "localizacao_categoria", "setor_economico", "intensidade_tecnologica", "valorTotal"
+        "registroCge", "numeroContrato", "nomeOrgao", "modalidade", "razao_social", "cnpj_clean",
+        "is_me_epp", "uf", "localizacao_categoria", "setor_economico", "intensidade_tecnologica", "valorTotal"
     ]].sort_values("valorTotal", ascending=False).rename(columns={
             "registroCge": "Registro CGE",
             "numeroContrato": "Nº Contrato",
             "nomeOrgao": "Órgão Contratante",
+            "modalidade": "Modalidade",
             "razao_social": "Razão Social Fornecedor",
             "cnpj_clean": "CNPJ",
+            "is_me_epp": "Porte (ME/EPP)",
             "uf": "UF",
             "localizacao_categoria": "Localização",
             "setor_economico": "Setor",
@@ -346,14 +319,16 @@ with tab_tabela:
             "valorTotal": "Valor Total (R$)"
     })
 
-    filtro_busca = st.text_input("🔍 Buscar por Fornecedor, CNPJ, Nº Contrato ou Registro CGE:", "")
+    filtro_busca = st.text_input("🔍 Buscar por Fornecedor, CNPJ, Nº Contrato, Registro CGE, Modalidade ou Porte:", "")
     if filtro_busca:
         termo = filtro_busca.strip().lower()
         df_tabela = df_tabela[
             df_tabela["Razão Social Fornecedor"].astype(str).str.lower().str.contains(termo) |
             df_tabela["CNPJ"].astype(str).str.contains(termo) |
             df_tabela["Nº Contrato"].astype(str).str.lower().str.contains(termo) |
-            df_tabela["Registro CGE"].astype(str).str.lower().str.contains(termo)
+            df_tabela["Registro CGE"].astype(str).str.lower().str.contains(termo) |
+            df_tabela["Modalidade"].astype(str).str.lower().str.contains(termo) |
+            df_tabela["Porte (ME/EPP)"].astype(str).str.lower().str.contains(termo)
         ]
 
     st.dataframe(
