@@ -137,7 +137,7 @@ uv run scripts/coleta_leis.py --baixar
   - `pages/4_📝_Curadoria_Manual.py`: Módulo 4 (Interface de Login e Curadoria para Triagem, Revisão e Validação da Base Oficial).
   - `pages/5_🏭_Perfil_Produtivo_CNAE.py`: Módulo 5 (Análise por CNAE, CNPJ, Localização Geográfica, 7 Setores Econômicos, Intensidade Tecnológica OCDE/IBGE, com filtros por Órgão Contratante, Modalidade de Compra e Porte ME/EPP).
 - `/outputs/`: Relatórios gerenciais e extrações analíticas.
-  - `outputs/relatorio/`: Relatórios técnicos executivos consolidados em PDF e HTML (`relatorio_analise_gt_compras_pb.pdf` para o Grupo de Trabalho).
+  - `outputs/relatorio/`: Relatórios técnicos executivos consolidados em PDF e HTML (`relatorio_analise_gt_compras_pb.pdf` e `relatorio_analise_gt_compras_02.pdf` para o Grupo de Trabalho).
   - `outputs/tables/`: Extrações tabulares completas em XLS (`bens_servicos_nivel_contratos.xls`, `bens_servicos_itens_contratados.xls`, `dados_consolidado.xls`).
   - `outputs/merenda/`: Análise exploratória sobre PNAE / Merenda Escolar na Secretaria de Educação.
   - `outputs/validacao_cagepa/`: Relatórios de conferência cruzada CAGEPA x Diário Oficial.
@@ -153,8 +153,9 @@ uv run scripts/coleta_leis.py --baixar
 - **[✓] Módulo 3 (Dados Econômicos - CAGED & Retenção Territorial):** Mapeamento por Classe CNAE, Matriz de Associação Compras x Emprego e Taxa de Retenção Territorial de Renda por UF.
 - **[✓] Módulo 4 (Curadoria Manual):** Módulo restrito com autenticação para revisão e homologação de normas para a base oficial.
 - **[✓] Módulo 5 (Perfil Produtivo & CNAE):** Mapeamento por CNPJ, CNAE, Localização (Capital PB, Interior PB, Nordeste, Fora do Nordeste), 7 Setores Econômicos e Intensidade Tecnológica OCDE/IBGE. Inclui filtros por Órgão, Modalidade de Compra, Porte Empresarial (ME/EPP) e KPI de participação de MPEs.
-- **[✓] Atendimento às Demandas do Grupo de Trabalho (GT):** Consultas analíticas multidimensionais cruzando bens e serviços, CNAE, OCDE, CNPJ, Órgãos, Modalidades e enquadramento de Micro e Pequenas Empresas (ME/EPP). Relatório executivo formalizado em PDF (`outputs/relatorio/relatorio_analise_gt_compras_pb.pdf`).
+- **[✓] Atendimento às Demandas do Grupo de Trabalho (GT):** Consultas analíticas multidimensionais cruzando bens e serviços, CNAE, OCDE, CNPJ, Órgãos, Modalidades e enquadramento de Micro e Pequenas Empresas (ME/EPP). Relatórios executivos em PDF (`outputs/relatorio/relatorio_analise_gt_compras_pb.pdf` e `outputs/relatorio/relatorio_analise_gt_compras_02.pdf`).
 - **[✓] Qualidade da base de contratos:** deduplicação por contrato (`src/etl/dedup_contratos.py`, chave `registroCge` ou `urlContrato` para contratos do PNCP); aditivos e apostilas já consolidados em `valorTotal`; validação cruzada com a planilha da CAGEPA (`scripts/valida_cagepa_planilha.py`, relatórios em `outputs/validacao_cagepa/`). Base atual: 15.352 contratos únicos.
+- **[ ] Pendência aguardando validação do GT:** Implementação de filtro por Macrocategoria de Bens (Grandes Categorias Econômicas do IBGE / PIM-PF: Bens de Capital, Bens Intermediários, Bens de Consumo Duráveis, Bens de Consumo Semiduráveis e Não Duráveis) no Módulo 5 do Portal (estudo conceitual e descritivo 2026 pronto em `outputs/relatorio/relatorio_analise_gt_compras_02.pdf`).
 - **[ ] Auditoria pendente:** `contratacoes` e `itens_contratacoes` (duplicidades) e `dim_contratacoes_macro`.
 - **[ ] Próximos Módulos:** Incorporação do PIB municipal e VAB (Valor Adicionado Bruto).
 

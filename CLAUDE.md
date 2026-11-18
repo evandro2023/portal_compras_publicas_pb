@@ -452,3 +452,16 @@ Relatórios:
 - **Destaques Empíricos para o GT:**
   - *Participação de ME/EPP:* 54,05% dos contratos e 60,67% dos itens homologados pertencem a MPEs, somando R$ 8,28 bilhões em contratos e R$ 10,36 bilhões em itens.
   - *Retenção Territorial Paraibana:* 67,88% dos recursos (R$ 20,75 bilhões) circulam diretamente na Paraíba (36,11% Capital João Pessoa e 31,77% Interior).
+
+## Histórico de Decisões Técnicas (Etapa 6 - Grandes Categorias Econômicas IBGE/PIM-PF e Relatório Técnico 02)
+
+- **Classificação por Grandes Categorias Econômicas (CGCE / PIM-PF - Tabela 8889 do SIDRA/IBGE):**
+  - Mapeamento das 4 categorias de uso: *Bens de Capital (BK)*, *Bens Intermediários (BI)*, *Bens de Consumo Duráveis (BCD)* e *Bens de Consumo Semiduráveis e Não Duráveis (BCND)* com base nos códigos CNAE de 7 dígitos (`cnae_fiscal`).
+  - **Diferenciação Metodológica entre 2 Abordagens:**
+    1. *Abordagem 1 (Indústria Fabricante Estrita PIM-PF):* Restrita aos fornecedores industriais diretos (Divisões 05 a 33 da CNAE). Em 2026, totalizou 360 contratos fabris (R$ 356,89 milhões), liderados por Bens de Capital (30,69%) e Intermediários (28,93%).
+    2. *Abordagem 2 (Cadeia Ampla de Aquisição de Bens):* Reúne indústrias e o comércio atacadista/distribuidor especializado de bens (Divisões 45 a 47). Em 2026, representou 2.311 contratos (R$ 1,07 bilhão), liderados por Bens Não Duráveis (R$ 599,24 milhões - saúde/medicamentos/alimentação) e Bens de Capital (R$ 215,30 milhões - TI/máquinas/veículos pesados).
+- **Relatório Técnico 02 em PDF (`outputs/relatorio/`):**
+  - Desenvolvido o script `scripts/gera_relatorio_gt_02_pdf.py` utilizando `weasyprint`.
+  - Gerado o documento oficial `outputs/relatorio/relatorio_analise_gt_compras_02.pdf` (4 páginas A4 em layout institucional, contendo análise descritiva das abordagens, tabelas do exercício 2026, análise qualitativa dos contratos emblemáticos como Positivo, Motorola, Saga Medição, Tecnosan e distribuidoras farmacêuticas, sem inclusão de código SQL no corpo do relatório).
+- **Atividade Pendente Registrada:**
+  - **[PENDÊNCIA GT]** Implementação do filtro dinâmico por *Grandes Categorias Econômicas do IBGE (Bens de Capital, Intermediários, Duráveis e Não Duráveis)* no Módulo 5 do Streamlit, aguardando validação e decisão formal do Grupo de Trabalho após apreciação do Relatório Técnico 02.
