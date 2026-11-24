@@ -80,8 +80,58 @@ def build_database():
         enriquece_fornecedores_uf(DB_PATH, limit_cnpjs=0)
     except Exception as e:
         print(f"Aviso ao enriquecer fornecedores: {e}")
+
+    try:
+        from enriquece_cnae_setor import executar_enriquecimento_cnae_setor
+        executar_enriquecimento_cnae_setor(DB_PATH)
+    except Exception as e:
+        print(f"Aviso ao enriquecer CNAE e setores: {e}")
+
+    recalcular_dim_fornecedores_uf_resumo(DB_PATH)
     
     print("ETL concluído com sucesso!")
+
+
+def recalcular_dim_fornecedores_uf_resumo(db_path=DB_PATH):
+    """Recalcula a tabela pré-agregada dim_fornecedores_uf_resumo no DuckDB.
+    
+    Garante que as métricas de Retenção Local vs Vazamento para Outras UFs no painel
+    estejam sempre sincronizadas com a base de contratos atualizada.
+    """
+    print("\n--- Recalculando tabela 'dim_fornecedores_uf_resumo' ---")
+    conn = duckdb.connect(db_path)
+    tables = [t[0] for t in conn.execute("SHOW TABLES").fetchall()]
+    if "dim_fornecedores_uf" in tables and "contratos" in tables:
+        conn.execute("""
+            CREATE OR REPLACE TABLE dim_fornecedores_uf_resumo AS
+            WITH base AS (
+                SELECT 
+                    c.ano_referencia,
+                    f.uf,
+                    CASE WHEN f.uf = 'PB' THEN 'Paraíba (Retenção Local)' ELSE 'Outras UFs (Vazamento de Renda)' END as origem_tipo,
+                    f.cnpj,
+                    c.valorTotal
+                FROM dim_fornecedores_uf f
+                JOIN (
+                    SELECT REGEXP_REPLACE(cnpjCpf, '[^0-9]', '', 'g') as cnpj, valorTotal, ano_referencia
+                    FROM contratos
+                    WHERE valorTotal IS NOT NULL
+                ) c ON c.cnpj = f.cnpj
+            )
+            SELECT 
+                ano_referencia,
+                uf,
+                origem_tipo,
+                COUNT(DISTINCT cnpj) as num_empresas,
+                SUM(valorTotal) as valor_total_contratado
+            FROM base
+            GROUP BY ano_referencia, uf, origem_tipo
+        """)
+        count = conn.execute("SELECT COUNT(*) FROM dim_fornecedores_uf_resumo").fetchone()[0]
+        print(f"  ✓ Tabela 'dim_fornecedores_uf_resumo' atualizada com {count} registros.")
+    else:
+        print("  ⚠️ Tabelas 'dim_fornecedores_uf' ou 'contratos' ausentes; resumo não recalculado.")
+    conn.close()
 
 if __name__ == "__main__":
     build_database()

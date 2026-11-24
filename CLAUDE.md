@@ -463,5 +463,33 @@ Relatórios:
 - **Relatório Técnico 02 em PDF (`outputs/relatorio/`):**
   - Desenvolvido o script `scripts/gera_relatorio_gt_02_pdf.py` utilizando `weasyprint`.
   - Gerado o documento oficial `outputs/relatorio/relatorio_analise_gt_compras_02.pdf` (4 páginas A4 em layout institucional, contendo análise descritiva das abordagens, tabelas do exercício 2026, análise qualitativa dos contratos emblemáticos como Positivo, Motorola, Saga Medição, Tecnosan e distribuidoras farmacêuticas, sem inclusão de código SQL no corpo do relatório).
+- **Atividade Concluída:**
+  - **[CONCLUÍDO]** Implementação do gráfico demonstrativo e filtro dinâmico por *Grandes Categorias Econômicas do IBGE (Bens de Capital, Intermediários, Duráveis e Não Duráveis)* no Módulo 5 do Streamlit (`5_🏭_Perfil_Produtivo_CNAE.py`), com inclusão da coluna *Grande Área / Setor (IBGE)* na aba de Dados Detalhados e exportação contextualizada em CSV.
+
+## Histórico de Decisões Técnicas (Etapa 7 - Mapeamento CAGEPA x Base Produtiva da Paraíba)
+
+- **Relação CAGEPA x Base Produtiva Local (2024–2026):**
+  - Realizado estudo exploratório e cruzamento completo das aquisições de bens da **CAGEPA** nos 4 Grandes Setores Econômicos (*Bens de Capital, Bens Intermediários, Bens de Consumo Duráveis e Bens de Consumo Semiduráveis/Não Duráveis*) com as **empresas instaladas na Paraíba** (`dim_fornecedores_cnae` com `uf = 'PB'`) por grau de proximidade CNAE (Exato 7 dígitos, Classe 4 dígitos, Grupo 3 dígitos e Divisão 2 dígitos) e com os microdados de emprego formal do **CAGED-PB (2025–2026)**.
+  - **Principais Números:** 490 contratos da CAGEPA nos 4 grandes setores de bens somando **R$ 588,26 milhões**, dos quais **98,25% (R$ 577,96 milhões / 473 contratos)** foram contratados fora da Paraíba. Identificadas **662 empresas sediadas na Paraíba** com CNAE igual ou próximo às demandas da CAGEPA e comprovada capacidade fabril instalada via CAGED-PB em setores com 100% de vazamento (ex.: Divisão 22 Plásticos/Tubos com 1.576 admissões em 25 municípios e Divisão 20 Químicos com 404 admissões em 24 municípios).
+- **Entregáveis Gerados em `outputs/validacao_cagepa/`:**
+  - `outputs/validacao_cagepa/relacao_cagepa_base_produtiva_pb.xls`: Planilha em 4 abas (`Resumo_4_Grandes_Setores`, `Contratos_CAGEPA_x_Base_PB`, `Fornecedores_PB_Potenciais` e `Matriz_CNAE_CAGEPA_x_CAGED`) contendo informações detalhadas dos contratos da CAGEPA, fornecedores vencedores e empresas paraibanas candidatas à adequação/diversificação produtiva.
+  - `outputs/validacao_cagepa/relatorio_cagepa_base_produtiva_pb.pdf`: Relatório técnico executivo de subsídio ao GT.
 - **Atividade Pendente Registrada:**
-  - **[PENDÊNCIA GT]** Implementação do filtro dinâmico por *Grandes Categorias Econômicas do IBGE (Bens de Capital, Intermediários, Duráveis e Não Duráveis)* no Módulo 5 do Streamlit, aguardando validação e decisão formal do Grupo de Trabalho após apreciação do Relatório Técnico 02.
+  - **[PENDÊNCIA GT]** Incorporação de módulo/painel dedicado no portal Streamlit para cruzamento interativo entre as demandas de órgãos estratégicos (como a CAGEPA) nos 4 Grandes Setores e a base produtiva instalada na Paraíba (empresas locais por proximidade CNAE + capacidade instalada CAGED-PB), visando apoiar políticas de adequação e diversificação industrial local. Aguardando análise e validação pelo Grupo de Trabalho.
+
+## Histórico de Decisões Técnicas (Etapa 8 - Reconciliações com o GT: Contratos x Licitações, Contratos x CAGED e Grandes Setores)
+
+- **1. Reconciliação Licitações (R$ 4,52 bi) vs Contratos (R$ 13,39 bi) em 2026:**
+  - Diagnóstico contábil detalhado no relatório executivo `outputs/relatorio/resumo_difereca_valor_contratacoes_contratratos.pdf` (gerado por `scripts/gera_relatorio_diferenca_contratacoes_contratos.py`).
+  - Demonstração dos 4 pilares: Concessão da CAGEPA na B3 via Lei das Estatais (R$ 6,07 bi - 68,4% da diferença), defasagem temporal de contratos decorrentes de editais de 2024/2025 (R$ 2,74 bi - 30,9%), instrumentos de gestão da PB Saúde (R$ 355 mi) e natureza sob demanda das Atas de Registro de Preços (SRP). Proporção histórica normalizada em 1,62x, idêntica a 2024.
+- **2. Reconciliação Contratos (R$ 13,39 bi) vs Matriz Compras x Emprego / CAGED (R$ 13,01 bi):**
+  - Diagnóstico contábil detalhado no relatório executivo `outputs/relatorio/diferencao_caged.pdf` (gerado por `scripts/gera_relatorio_diferenca_caged.py`).
+  - Decomposição exata da diferença de R$ 383,71 milhões:
+    - *Parcela A (Descompasso de Atualização no ETL - R$ 354,06 mi | 92,27%):* A tabela de cache `dim_fornecedores_uf_resumo` havia ficado defasada em relação aos contratos incrementais recentes. Solucionado com a criação da rotina `recalcular_dim_fornecedores_uf_resumo()` integrada ao `src/etl/build_db.py`, elevando o total corporativo para R$ 13,36 bilhões.
+    - *Parcela B (Filtro Metodológico de Pessoas Físicas - R$ 29,66 mi | 7,73%):* 141 contratos sem CNPJ empresarial válido (96 contratos de CPFs somando R$ 26,09 mi em locações prediais e serviços técnicos autônomos, 43 sem número e 2 truncados).
+  - Comprovada a estabilidade da Taxa de Retenção Territorial da Paraíba (~70,0% anterior vs 68,9% recalculado).
+  - Implementada nota metodológica de rodapé em `portal/pages/3_📈_Dados_Socioeconomicos.py` informando a exclusão dos R$ 29,66 mi em CPFs.
+- **3. Implementação dos Grandes Setores do IBGE no Módulo 5 (`portal/pages/5_🏭_Perfil_Produtivo_CNAE.py`):**
+  - Adicionada função `categorizar_grande_setor()` em `src/etl/cnae_catalog.py` mapeando as 4 Grandes Categorias Econômicas do IBGE (*Bens de Capital, Bens Intermediários, Bens de Consumo Duráveis, Bens de Consumo Semiduráveis/Não Duráveis*) e os macrosetores de *Construção Civil, SIUP, Serviços Gerais e Agropecuária*.
+  - Inserido gráfico de barras horizontais Plotly responsivo ao filtro de ano na aba *c) Setores Econômicos*, acompanhado de tabela detalhada por Grande Setor.
+  - Inserida coluna *Grande Área / Setor (IBGE)* na aba *Dados Detalhados*, integrada ao filtro textual de busca e ao arquivo de download em CSV.

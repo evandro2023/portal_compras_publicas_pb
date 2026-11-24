@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+    @page {
+        size: A4;
+        margin: 11mm 12mm 12mm 12mm;
+        @bottom-center {
+            content: "Portal Compras Públicas PB | Nota Técnica GT — Página " counter(page) " de " counter(pages);
+            font-family: 'Inter', 'DejaVu Sans', sans-serif;
+            font-size: 7.5pt;
+            color: #64748b;
+        }
+    }
+    body {
+        font-family: 'Inter', 'DejaVu Sans', sans-serif;
+        font-size: 8.5pt;
+        line-height: 1.36;
+        color: #1e293b;
+        margin: 0;
+        padding: 0;
+    }
+    .header {
+        border-bottom: 2.5px solid #0f2c59;
+        padding-bottom: 5px;
+        margin-bottom: 8px;
+    }
+    .instituicao {
+        font-size: 7.5pt;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        color: #0f2c59;
+        text-transform: uppercase;
+    }
+    h1 {
+        font-size: 13.5pt;
+        color: #0f2c59;
+        margin: 2px 0 2px 0;
+        line-height: 1.15;
+    }
+    .subtitulo {
+        font-size: 8.5pt;
+        color: #475569;
+        margin: 0;
+    }
+    .meta-bar {
+        background: #f1f5f9;
+        border-left: 3px solid #0f2c59;
+        padding: 4px 8px;
+        font-size: 7.5pt;
+        color: #334155;
+        margin-bottom: 8px;
+    }
+    h2 {
+        font-size: 10pt;
+        color: #0f2c59;
+        border-bottom: 1px solid #cbd5e1;
+        padding-bottom: 2px;
+        margin: 8px 0 4px 0;
+        page-break-after: avoid;
+    }
+    p {
+        margin: 0 0 5px 0;
+        text-align: justify;
+    }
+    .kpi-grid {
+        display: table;
+        width: 100%;
+        table-layout: fixed;
+        border-spacing: 5px 0;
+        margin: 0 -5px 8px -5px;
+    }
+    .kpi-card {
+        display: table-cell;
+        background: #f8fafc;
+        border: 1px solid #cbd5e1;
+        border-top: 2.5px solid #0f2c59;
+        border-radius: 4px;
+        padding: 5px 7px;
+        vertical-align: top;
+    }
+    .kpi-card.warn {
+        border-top-color: #b91c1c;
+        background: #fffafa;
+    }
+    .kpi-label {
+        font-size: 6.8pt;
+        text-transform: uppercase;
+        color: #64748b;
+        font-weight: 700;
+    }
+    .kpi-val {
+        font-size: 11pt;
+        font-weight: 800;
+        color: #0f2c59;
+        margin: 1px 0;
+    }
+    .kpi-card.warn .kpi-val {
+        color: #b91c1c;
+    }
+    .kpi-sub {
+        font-size: 6.8pt;
+        color: #475569;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 5px 0 7px 0;
+        font-size: 7.3pt;
+    }
+    th {
+        background: #0f2c59;
+        color: #ffffff;
+        font-weight: 600;
+        text-align: left;
+        padding: 3.5px 5px;
+        border: 1px solid #0f2c59;
+    }
+    td {
+        padding: 3px 5px;
+        border: 1px solid #cbd5e1;
+        vertical-align: middle;
+    }
+    tr:nth-child(even) td {
+        background: #f8fafc;
+    }
+    .num {
+        text-align: right;
+        white-space: nowrap;
+    }
+    .muted {
+        font-size: 6.5pt;
+        color: #64748b;
+    }
+    code {
+        background: #e2e8f0;
+        padding: 1px 3px;
+        border-radius: 3px;
+        font-size: 6.8pt;
+    }
+    .callout {
+        background: #eff6ff;
+        border-left: 3px solid #1d4ed8;
+        padding: 5px 8px;
+        margin: 6px 0;
+        font-size: 7.8pt;
+    }
+    .callout-warn {
+        background: #fff7ed;
+        border-left: 3px solid #c2410c;
+        padding: 5px 8px;
+        margin: 6px 0;
+        font-size: 7.8pt;
+    }
+    ul {
+        margin: 2px 0 6px 14px;
+        padding: 0;
+    }
+    li {
+        margin-bottom: 2px;
+    }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <div class="instituicao">UFPB / SUDENE / Governo do Estado da Paraíba | Grupo de Trabalho (GT)</div>
+    <h1>Nota Técnica: Diferença entre Valor de Licitações e Volume de Contratos (2026)</h1>
+    <p class="subtitulo">Análise Metodológica, Orçamentária e Decomposição Empírica dos Dados no Painel de Compras Públicas</p>
+</div>
+
+<div class="meta-bar">
+    <strong>Painel Streamlit Referência:</strong> <code>1_🛍️_Compras_Publicas.py</code> (Módulo de Compras Públicas) |
+    <strong>Fontes Oficiais:</strong> Central de Compras da PB (API <code>/contratacoes</code>) e CGE-PB / Transparência (API <code>/contratos</code>)
+</div>
+
+<h2>1. O Questionamento do Grupo de Trabalho (GT)</h2>
+<p>
+Ao acessar o <strong>Módulo 1: Compras Públicas (Painel Exploratório)</strong> com o filtro posicionado no ano de <strong>2026</strong>, o Grupo de Trabalho identificou duas grandezas financeiras com valores aparentemente divergentes:
+</p>
+<ul>
+    <li><strong>Aba 1 (Visão: Contratações / Licitações):</strong> Valor Total Adjudicado de <strong>R$ 4.524.850.970,69</strong> em <strong>4.579 processos licitatórios</strong>.</li>
+    <li><strong>Aba 2 (Detalhamento: Contratos Firmados):</strong> Volume Financeiro Contratado de <strong>R$ 13.390.270.455,16</strong> em <strong>4.736 contratos firmados</strong>.</li>
+</ul>
+<p>
+A diferença absoluta observada é de <strong>R$ 8.865.419.484,47</strong> (o volume de contratos é <strong>2,96 vezes maior</strong> que o volume de licitações).
+</p>
+
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-label">Licitações 2026 (Adjudicado)</div>
+        <div class="kpi-val">R$ 4.524.850.970,69</div>
+        <div class="kpi-sub">4.467 editais homologados no ano</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Contratos 2026 (Firmados)</div>
+        <div class="kpi-val">R$ 13.390.270.455,16</div>
+        <div class="kpi-sub">4.736 instrumentos formais assinados</div>
+    </div>
+    <div class="kpi-card warn">
+        <div class="kpi-label">Diferença Absoluta</div>
+        <div class="kpi-val">+R$ 8.865.419.484,47</div>
+        <div class="kpi-sub">Razão Contratos / Licitações: 2,96x</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Contrato Acciona / CAGEPA</div>
+        <div class="kpi-val">R$ 6,07 bilhões</div>
+        <div class="kpi-sub">Explica 68,45% da diferença total</div>
+    </div>
+</div>
+
+<h2>2. Diferença Conceitual: Licitação vs. Contrato</h2>
+<p>
+A discrepância decorre de as duas abas medirem <strong>fases distintas e assíncronas do ciclo de compras públicas</strong>, alimentadas por sistemas complementares do Estado:
+</p>
+<p>
+<strong>1. Contratações (Licitações):</strong> Mede o <em>esforço processual licitatório</em> conduzido e homologado pela Central de Compras no ano civil (pregões eletrônicos, concorrências, dispensas registradas). O valor adjudicado representa o lance vencedor no certame. Muitas licitações são do tipo <strong>Registro de Preços (SRP)</strong>, que estabelecem apenas uma estimativa teto sem obrigação imediata de contratação integral.
+</p>
+<p>
+<strong>2. Contratos Firmados:</strong> Mede o <em>compromisso jurídico, orçamentário e financeiro efetivo</em> celebrado entre os órgãos e os fornecedores (com dotação, empenho e cronograma de desembolso). Engloba instrumentos contratuais decorrentes de leilões e concessões internacionais de estatais, termos de gestão hospitalar, adesões a atas e licitações de anos anteriores.
+</p>
+
+<h2>3. Decomposição Empírica dos R$ 13,39 Bilhões de Contratos em 2026</h2>
+<p>
+Ao cruzar registro por registro cada contrato assinado em 2026 com os processos de licitação no banco analítico <code>compras_pb.duckdb</code>, a carteira de R$ 13,39 bilhões divide-se em três blocos perfeitamente rastreáveis:
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Origem do Instrumento Contratual (Exercício 2026)</th>
+            <th class="num">Qtd. Contratos</th>
+            <th class="num">Volume Contratado</th>
+            <th class="num">% da Carteira</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr>
+            <td><strong>1. Sem Processo Centralizado (Concessões B3, Estatais, Gestão e Dispensas)</strong></td>
+            <td class="num">1.371</td>
+            <td class="num">R$ 7.797.779.719,51</td>
+            <td class="num"><strong>58,23%</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>3. Decorrentes de Licitações Homologadas em 2026 (Mesmo Exercício)</strong></td>
+            <td class="num">1.462</td>
+            <td class="num">R$ 2.828.599.727,39</td>
+            <td class="num"><strong>21,12%</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>4. Decorrentes de Licitações de Exercícios Anteriores (2024/2025)</strong></td>
+            <td class="num">1.895</td>
+            <td class="num">R$ 2.735.943.643,42</td>
+            <td class="num"><strong>20,43%</strong></td>
+        </tr>
+        
+        <tr>
+            <td><strong>2. Processo Não Mapeado no Catálogo Central</strong></td>
+            <td class="num">8</td>
+            <td class="num">R$ 27.947.364,84</td>
+            <td class="num"><strong>0,21%</strong></td>
+        </tr>
+        
+    </tbody>
+</table>
+
+<div class="callout-warn">
+    <strong>Os 4 Fatores Explicativos do Descolamento:</strong>
+    <ul>
+        <li><strong>Fator 1 — O Megacontrato da CAGEPA / Acciona (R$ 6,07 bilhões):</strong> O Contrato nº 0213/2026 da CAGEPA com a <em>Concessionária Acciona Água Paraíba SPE S.A.</em> soma <strong>R$ 6.068.736.000,00</strong> (45,32% de todos os contratos de 2026). Trata-se de uma concessão pública internacional leiloada na Bolsa de Valores (B3/SP), regida pela Lei das Estatais (Lei 13.303/2016) e Lei de Concessões (Lei 8.987/1995). Ela é registrada no Portal da Transparência da CGE como contrato, mas não tramita como pregão da Central de Compras (processo licitatório central nulo).</li>
+        <li><strong>Fator 2 — Defasagem Temporal de Ciclo (R$ 2,74 bilhões):</strong> 1.895 contratos assinados em 2026 decorrem de licitações homologadas em <strong>2024 e 2025</strong>. Grandes contratações de obras rodoviárias, frotas e TI são licitadas no final de um exercício e formalizadas no seguinte. O valor dessas licitações computou nos anos anteriores, enquanto o valor contratual incide em 2026.</li>
+        <li><strong>Fator 3 — Gestão Hospitalar e Estatais sem Edital Centralizado (R$ 1,73 bilhão):</strong> Contratos como a gestão do Hospital Metropolitano pela <em>PB Saúde</em> (R$ 354,96 mi) e obras hídricas da SEIRH (R$ 270,00 mi) tramitam por termos de gestão ou regimes especiais.</li>
+        <li><strong>Fator 4 — Atas de Registro de Preços de 2026 com Saldo a Executar (R$ 911 milhões):</strong> Na aba de Licitações, 2.295 processos licitados em 2026 (R$ 911,10 mi) são atas SRP cujo consumo ocorrerá parceladamente em até 12 meses (muitos contratos só serão assinados em 2027).</li>
+    </ul>
+</div>
+
+<h2>4. Top Contratos de 2026 que Ilustram a Dinâmica</h2>
+<p>
+A tabela abaixo lista os maiores contratos de 2026, comprovando como grandes valores decorrem de concessões na B3 ou de licitações homologadas em 2025:
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>Registro / Órgão</th>
+            <th>Fornecedor Contratado</th>
+            <th>Processo de Licitação Vinculado</th>
+            <th class="num">Valor do Contrato</th>
+            <th>Objeto Resumido</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr>
+            <td style="white-space: nowrap;"><code>26-01483-1</code><br><span class="muted">CAGEPA - 31.0601</span></td>
+            <td><strong>CONCESSIONÁRIA ACCIONA ÁGUA PARAÍBA SPE S.A.</strong></td>
+            <td><code>Sem Edital Central (B3/Estatais)</code></td>
+            <td class="num"><strong>R$ 6.068.735.588,41</strong></td>
+            <td>SERVIÇO ESPECIALIZADO...</td>
+        </tr>
+        
+        <tr>
+            <td style="white-space: nowrap;"><code>26-23014-4</code><br><span class="muted">SES - 253601</span></td>
+            <td><strong>FUNDAÇÃO PARAIBANA DE GESTÃO EM SAÚDE - PB SAÚDE</strong></td>
+            <td><code>25.000.026690.2026</code></td>
+            <td class="num"><strong>R$ 354.962.722,56</strong></td>
+            <td>Oferecer ações e serviços de saúde do Hospital Metropolitano...</td>
+        </tr>
+        
+        <tr>
+            <td style="white-space: nowrap;"><code>26-01704-1</code><br><span class="muted">SEIRH - 31.0001</span></td>
+            <td><strong>CONSOSRCIO TRANSPARAIBA 2</strong></td>
+            <td><code>Sem Edital Central (B3/Estatais)</code></td>
+            <td class="num"><strong>R$ 270.000.000,00</strong></td>
+            <td>SERVIÇO ESPECIALIZADO...</td>
+        </tr>
+        
+        <tr>
+            <td style="white-space: nowrap;"><code>26-28619-5</code><br><span class="muted">EGE SEAD 30.0001</span></td>
+            <td><strong>CS BRASIL FROTAS S.A</strong></td>
+            <td><code>19.000.000106.2025</code></td>
+            <td class="num"><strong>R$ 224.179.660,44</strong></td>
+            <td>Locação de veículos operacionais, conforme Termo de Referênc...</td>
+        </tr>
+        
+        <tr>
+            <td style="white-space: nowrap;"><code>26-22763-7</code><br><span class="muted">SEIRH - 31.0001</span></td>
+            <td><strong>CONSORCIO AGIS - GM5</strong></td>
+            <td><code>31.000.001242.2025</code></td>
+            <td class="num"><strong>R$ 191.558.717,90</strong></td>
+            <td>CONTRATAÇÃO DE CONSÓRCIO PARA PRESTAÇÃO DE SERVIÇOS TÉC. ESP...</td>
+        </tr>
+        
+        <tr>
+            <td style="white-space: nowrap;"><code>26-25281-7</code><br><span class="muted">DER - 31.0101</span></td>
+            <td><strong>CONSTRUTORA LUIZ COSTA LTDA</strong></td>
+            <td><code>31.201.001370.2026</code></td>
+            <td class="num"><strong>R$ 126.380.000,00</strong></td>
+            <td>Obra de Implantação e Pavimentação da PB-139, Trecho: Pocinh...</td>
+        </tr>
+        
+    </tbody>
+</table>
+
+<h2>5. Contexto Histórico: A Relação Contratos / Licitações (2024–2026)</h2>
+<p>
+A comparação com os anos de 2024 e 2025 revela que o volume de contratos firmados é <strong>estruturalmente superior</strong> ao volume de licitações homologadas no mesmo ano, variando conforme a maturação de grandes projetos estatais:
+</p>
+
+<table>
+    <thead>
+        <tr>
+            <th style="text-align: center;">Ano</th>
+            <th class="num">Qtd. Licitações</th>
+            <th class="num">Valor Adjudicado (A)</th>
+            <th class="num">Qtd. Contratos</th>
+            <th class="num">Valor Contratado (B)</th>
+            <th class="num">Diferença (B - A)</th>
+            <th class="num">Razão (B / A)</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+        <tr >
+            <td style="text-align: center;"><strong>2024</strong></td>
+            <td class="num">2.288</td>
+            <td class="num">R$ 3.989.796.907,57</td>
+            <td class="num">4.522</td>
+            <td class="num">R$ 6.728.327.108,45</td>
+            <td class="num" style="color: #334155;">R$ 2.738.530.200,87</td>
+            <td class="num" style="color: #334155;"><strong>1.69x</strong></td>
+        </tr>
+        
+        <tr >
+            <td style="text-align: center;"><strong>2025</strong></td>
+            <td class="num">3.897</td>
+            <td class="num">R$ 5.348.234.968,61</td>
+            <td class="num">6.293</td>
+            <td class="num">R$ 5.915.148.269,37</td>
+            <td class="num" style="color: #334155;">R$ 566.913.300,76</td>
+            <td class="num" style="color: #334155;"><strong>1.11x</strong></td>
+        </tr>
+        
+        <tr style='background: #f1f5f9; font-weight: bold;'>
+            <td style="text-align: center;"><strong>2026</strong></td>
+            <td class="num">4.467</td>
+            <td class="num">R$ 4.524.850.970,69</td>
+            <td class="num">4.736</td>
+            <td class="num">R$ 13.390.270.455,16</td>
+            <td class="num" style="color: #0f2c59;">R$ 8.865.419.484,47</td>
+            <td class="num" style="color: #b91c1c;"><strong>2.96x</strong></td>
+        </tr>
+        
+    </tbody>
+</table>
+
+<div class="callout">
+    <strong>Conclusão Técnica para o GT:</strong>  
+    Em 2024, a razão Contratos/Licitações foi de <strong>1,69x</strong>. Se expurgarmos de 2026 o megacontrato atípico da concessão da CAGEPA (R$ 6,07 bi), o saldo restante de contratos é de <strong>R$ 7,32 bilhões</strong>, resultando em uma razão de <strong>1,62x</strong> sobre as licitações de 2026 (R$ 4,52 bi) — mantendo perfeita aderência ao padrão estrutural histórico do Estado.
+</div>
+
+</body>
+</html>

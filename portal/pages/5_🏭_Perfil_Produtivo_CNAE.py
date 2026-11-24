@@ -4,6 +4,7 @@ from pathlib import Path
 import streamlit as st
 import pandas as pd
 import duckdb
+import plotly.express as px
 
 # Garante que o diretório raiz esteja no sys.path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -15,6 +16,7 @@ from src.etl.cnae_catalog import (
     categorizar_localizacao,
     categorizar_setor_cnae,
     categorizar_intensidade_tecnologica,
+    categorizar_grande_setor,
 )
 
 set_page_config(page_title="Perfil Produtivo e CNAE - Portal Compras PB")
@@ -28,7 +30,8 @@ Esta seção analisa a distribuição das contratações públicas estaduais sob
 A análise categoriza o poder de compra pública por:
 1. **Localização Geográfica**: Capital (João Pessoa), Interior da Paraíba, Região Nordeste e Fora do Nordeste.
 2. **Intensidade Tecnológica**: Alta, Média-Alta, Média-Baixa e Baixa intensidade (Taxonomia OCDE/IBGE).
-3. **Setores Econômicos**: Classificação oficial por seções CNAE (Indústria de Transformação, Extrativa, SIUP, Construção Civil, Comércio, Serviços, Agricultura/Pecuária).
+3. **Grandes Setores e Categorias Econômicas (IBGE / CGCE)**: Bens de Capital, Bens Intermediários, Bens de Consumo Duráveis, Bens de Consumo Semiduráveis/Não Duráveis, Construção Civil, SIUP, Serviços e Agropecuária.
+4. **Setores Econômicos Tradicionais**: Classificação oficial por seções CNAE.
 """)
 
 # --- Card Informativo sobre Sergipe ---
@@ -125,6 +128,9 @@ _n_bruto = len(df_todos)
 df_todos = deduplicar_contratos(df_todos)
 _n_duplicados = _n_bruto - len(df_todos)
 
+if not df_todos.empty and "cnae_fiscal" in df_todos.columns:
+    df_todos["grande_setor"] = df_todos["cnae_fiscal"].apply(categorizar_grande_setor)
+
 if df_todos.empty:
     st.warning("⚠️ Não foi possível carregar os microdados de contratos no momento.")
     st.stop()
@@ -147,6 +153,9 @@ selected_modalidade = st.sidebar.selectbox("Modalidade de Compra:", modalidades_
 portes_list = ["Todos", "Sim (ME/EPP)", "Não (Média/Grande)", "Não Identificado / PF"]
 selected_porte = st.sidebar.selectbox("Porte (ME/EPP):", portes_list)
 
+grandes_setores_list = ["Todos"] + sorted([str(s) for s in df_todos["grande_setor"].dropna().unique() if str(s).strip()])
+selected_grande_setor = st.sidebar.selectbox("Grande Área / Setor (IBGE):", grandes_setores_list)
+
 df_base = df_todos.copy()
 
 if selected_ano != "Todos":
@@ -160,6 +169,9 @@ if selected_modalidade != "Todas":
 
 if selected_porte != "Todos":
     df_base = df_base[df_base["is_me_epp"] == selected_porte]
+
+if selected_grande_setor != "Todos":
+    df_base = df_base[df_base["grande_setor"] == selected_grande_setor]
 
 if df_base.empty:
     st.warning("Nenhum registro encontrado para os filtros selecionados.")
@@ -262,34 +274,106 @@ with tab_tec:
 
 # --- ABA 3: SETOR ECONÔMICO ---
 with tab_setor:
-    st.subheader("Distribuição por Setor Econômico (CNAE)")
-    st.write("Volume de recursos alocados nos 7 grandes setores da economia brasileira.")
-    
+    st.subheader("Distribuição por Grandes Setores Econômicos (IBGE / CGCE)")
+    st.write(
+        "Mapeamento do volume financeiro sob as **Grandes Categorias Econômicas do IBGE** "
+        "(Classificação por Grandes Categorias Econômicas - CGCE / PIM-PF) e macrosetores da cadeia de suprimentos."
+    )
+
+    # 1. Agrupamento por Grandes Setores (IBGE / CGCE)
+    df_gs = df_base.groupby("grande_setor", as_index=False).agg(
+        total_valor=("valorTotal", "sum"),
+        total_contratos=("valorTotal", "count")
+    ).sort_values("total_valor", ascending=False)
+
+    df_gs["percentual"] = (df_gs["total_valor"] / total_valor * 100).round(2) if total_valor > 0 else 0
+
+    col_gs_chart, col_gs_data = st.columns([3, 2])
+
+    with col_gs_chart:
+        fig_gs = px.bar(
+            df_gs,
+            x="total_valor",
+            y="grande_setor",
+            orientation="h",
+            text="total_valor",
+            color="grande_setor",
+            labels={"total_valor": "Volume Financeiro Contratado (R$)", "grande_setor": "Grande Setor (IBGE)"},
+            title=f"Volume Contratado por Grande Setor — Exercício {selected_ano if selected_ano != 'Todos' else 'Consolidado'}",
+            color_discrete_map={
+                "Bens de Capital": "#1d4ed8",
+                "Bens Intermediários": "#0284c7",
+                "Bens de Consumo Duráveis": "#7c3aed",
+                "Bens de Consumo Semiduráveis e Não Duráveis": "#16a34a",
+                "Construção Civil": "#d97706",
+                "Serviços Industriais de Utilidade Pública (SIUP)": "#0f766e",
+                "Serviços Gerais": "#64748b",
+                "Agropecuária": "#854d0e",
+                "Outros / Não Classificado": "#94a3b8",
+            }
+        )
+        fig_gs.update_traces(
+            texttemplate="R$ %{text:,.2s}",
+            textposition="outside",
+            showlegend=False
+        )
+        fig_gs.update_layout(
+            yaxis={"categoryorder": "total ascending", "title": ""},
+            xaxis={"title": "Volume Financeiro (R$)"},
+            height=430,
+            margin=dict(l=10, r=40, t=40, b=10)
+        )
+        st.plotly_chart(fig_gs, width="stretch")
+
+    with col_gs_data:
+        st.markdown("##### 📋 Totais por Grande Setor")
+        st.dataframe(
+            df_gs.rename(columns={
+                "grande_setor": "Grande Setor (IBGE)",
+                "total_valor": "Valor Total (R$)",
+                "total_contratos": "Contratos",
+                "percentual": "Part. (%)"
+            }),
+            column_config={
+                "Valor Total (R$)": st.column_config.NumberColumn(format="R$ %,.2f"),
+                "Part. (%)": st.column_config.NumberColumn(format="%.2f %%")
+            },
+            hide_index=True,
+            width="stretch"
+        )
+
+    st.markdown("---")
+    st.subheader("Distribuição Tradicional por Seção CNAE (7 Setores da Economia)")
+    st.write("Volume de recursos alocados nas seções primárias da Classificação Nacional de Atividades Econômicas.")
+
     df_setor = df_base.groupby("setor_economico", as_index=False).agg(
         total_valor=("valorTotal", "sum"),
         total_contratos=("valorTotal", "count")
     ).sort_values("total_valor", ascending=False)
-    
-    df_setor["percentual"] = (df_setor["total_valor"] / total_valor * 100).round(2)
-    
-    st.bar_chart(
-        data=df_setor.set_index("setor_economico")["total_valor"],
-        height=380
-    )
-    
-    st.dataframe(
-        df_setor.rename(columns={
-            "setor_economico": "Setor Econômico",
-            "total_valor": "Valor Total (R$)",
-            "total_contratos": "Contratos",
-            "percentual": "Part. (%)"
-        }),
-        column_config={
-            "Valor Total (R$)": st.column_config.NumberColumn(format="R$ %,.2f"),
-            "Part. (%)": st.column_config.NumberColumn(format="%.2f %%")
-        },
-        hide_index=True
-    )
+
+    df_setor["percentual"] = (df_setor["total_valor"] / total_valor * 100).round(2) if total_valor > 0 else 0
+
+    col_set_chart, col_set_data = st.columns([3, 2])
+    with col_set_chart:
+        st.bar_chart(
+            data=df_setor.set_index("setor_economico")["total_valor"],
+            height=340
+        )
+    with col_set_data:
+        st.dataframe(
+            df_setor.rename(columns={
+                "setor_economico": "Setor Tradicional CNAE",
+                "total_valor": "Valor Total (R$)",
+                "total_contratos": "Contratos",
+                "percentual": "Part. (%)"
+            }),
+            column_config={
+                "Valor Total (R$)": st.column_config.NumberColumn(format="R$ %,.2f"),
+                "Part. (%)": st.column_config.NumberColumn(format="%.2f %%")
+            },
+            hide_index=True,
+            width="stretch"
+        )
 
 # --- ABA 4: DADOS DETALHADOS ---
 with tab_tabela:
@@ -303,7 +387,7 @@ with tab_tabela:
 
     df_tabela = df_base[[
         "registroCge", "numeroContrato", "nomeOrgao", "modalidade", "razao_social", "cnpj_clean",
-        "is_me_epp", "uf", "localizacao_categoria", "setor_economico", "intensidade_tecnologica", "valorTotal"
+        "is_me_epp", "uf", "localizacao_categoria", "grande_setor", "setor_economico", "intensidade_tecnologica", "valorTotal"
     ]].sort_values("valorTotal", ascending=False).rename(columns={
             "registroCge": "Registro CGE",
             "numeroContrato": "Nº Contrato",
@@ -314,12 +398,13 @@ with tab_tabela:
             "is_me_epp": "Porte (ME/EPP)",
             "uf": "UF",
             "localizacao_categoria": "Localização",
-            "setor_economico": "Setor",
+            "grande_setor": "Grande Área / Setor (IBGE)",
+            "setor_economico": "Setor CNAE",
             "intensidade_tecnologica": "Intensidade Tec.",
             "valorTotal": "Valor Total (R$)"
     })
 
-    filtro_busca = st.text_input("🔍 Buscar por Fornecedor, CNPJ, Nº Contrato, Registro CGE, Modalidade ou Porte:", "")
+    filtro_busca = st.text_input("🔍 Buscar por Fornecedor, CNPJ, Nº Contrato, Registro CGE, Modalidade, Porte ou Grande Área:", "")
     if filtro_busca:
         termo = filtro_busca.strip().lower()
         df_tabela = df_tabela[
@@ -328,7 +413,8 @@ with tab_tabela:
             df_tabela["Nº Contrato"].astype(str).str.lower().str.contains(termo) |
             df_tabela["Registro CGE"].astype(str).str.lower().str.contains(termo) |
             df_tabela["Modalidade"].astype(str).str.lower().str.contains(termo) |
-            df_tabela["Porte (ME/EPP)"].astype(str).str.lower().str.contains(termo)
+            df_tabela["Porte (ME/EPP)"].astype(str).str.lower().str.contains(termo) |
+            df_tabela["Grande Área / Setor (IBGE)"].astype(str).str.lower().str.contains(termo)
         ]
 
     st.dataframe(

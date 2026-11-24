@@ -119,3 +119,99 @@ def categorizar_intensidade_tecnologica(cnae_code: str | int | None) -> str:
         return "Alta Intensidade Tecnológica (Serviços KIS)"
 
     return "Serviços e Outros (Não-Industrial)"
+
+
+def categorizar_grande_setor(cnae_code: str | int | None) -> str:
+    """Classifica o código CNAE nas Grandes Categorias Econômicas do IBGE (CGCE / PIM-PF)
+    e nos demais macrosetores econômicos da cadeia de compras públicas:
+
+    Grandes Categorias de Bens (IBGE):
+    - Bens de Capital
+    - Bens Intermediários
+    - Bens de Consumo Duráveis
+    - Bens de Consumo Semiduráveis e Não Duráveis
+
+    Demais Macrosetores:
+    - Construção Civil
+    - Serviços Industriais de Utilidade Pública (SIUP)
+    - Serviços Gerais
+    - Agropecuária
+    - Outros / Não Classificado
+    """
+    if not cnae_code:
+        return "Não Classificado"
+
+    cnae_str = re.sub(r"\D", "", str(cnae_code))
+    if len(cnae_str) < 2:
+        return "Não Classificado"
+
+    try:
+        cnae_int = int(cnae_str)
+        divisao = int(cnae_str[:2])
+        grupo = int(cnae_str[:3]) if len(cnae_str) >= 3 else 0
+        subclasse_5 = int(cnae_str[:5]) if len(cnae_str) >= 5 else 0
+    except ValueError:
+        return "Não Classificado"
+
+    # Bens de Capital (Máquinas, equipamentos, informática, veículos pesados de carga/transporte)
+    if (
+        divisao == 28
+        or (divisao == 26 and grupo in (261, 262, 265))
+        or (divisao == 27 and grupo in (271, 273, 279))
+        or (divisao == 29 and grupo in (292, 293))
+        or (divisao == 30 and grupo in (301, 303, 304, 305))
+        or (divisao == 32 and subclasse_5 == 32501)
+        or divisao == 33
+        or grupo in (466, 465)
+        or subclasse_5 == 47512
+        or cnae_int in (4511102, 4511104, 4511106)
+    ):
+        return "Bens de Capital"
+
+    # Bens Intermediários (Insumos industriais, plásticos, produtos químicos básicos, materiais)
+    if (
+        5 <= divisao <= 9
+        or divisao in (16, 17, 22, 23, 24, 25)
+        or (divisao == 20 and grupo not in (206, 207))
+        or (divisao == 29 and grupo == 294)
+        or (divisao == 13 and grupo in (131, 132, 133))
+        or grupo in (453, 467, 468)
+        or grupo == 474
+    ):
+        return "Bens Intermediários"
+
+    # Bens de Consumo Duráveis (Mobiliário, eletrodomésticos, automóveis de passeio, eletrônicos de consumo)
+    if (
+        (divisao == 26 and grupo in (263, 264))
+        or (divisao == 27 and grupo == 275)
+        or (divisao == 29 and grupo == 291)
+        or (divisao == 30 and grupo == 309)
+        or divisao == 31
+        or (divisao == 32 and grupo in (321, 322, 323, 324))
+        or grupo == 454
+        or subclasse_5 in (47539, 47547, 46494)
+        or cnae_int in (4511101, 4511103, 4511105)
+    ):
+        return "Bens de Consumo Duráveis"
+
+    # Bens de Consumo Semiduráveis e Não Duráveis (Alimentos, medicamentos, vestuário, combustíveis)
+    if (
+        divisao in (10, 11, 12, 14, 15, 18, 21)
+        or (divisao == 13 and grupo in (134, 135))
+        or (divisao == 20 and grupo in (206, 207))
+        or (divisao == 32 and grupo == 329)
+        or grupo in (462, 463, 464, 471, 472, 473, 476, 477, 478)
+    ):
+        return "Bens de Consumo Semiduráveis e Não Duráveis"
+
+    # Demais Macrosetores
+    if 41 <= divisao <= 43:
+        return "Construção Civil"
+    elif 35 <= divisao <= 39:
+        return "Serviços Industriais de Utilidade Pública (SIUP)"
+    elif 49 <= divisao <= 96:
+        return "Serviços Gerais"
+    elif 1 <= divisao <= 3:
+        return "Agropecuária"
+    else:
+        return "Outros / Não Classificado"

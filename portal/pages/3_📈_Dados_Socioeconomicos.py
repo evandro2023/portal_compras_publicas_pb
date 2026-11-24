@@ -308,6 +308,12 @@ with tab_associacao:
         with col_kpi3:
             st.metric("Vazamento para Outras UFs", f"R$ {val_outros:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."))
 
+        st.caption(
+            "📌 **Nota Metodológica:** O montante analisado na matriz considera contratações de pessoas jurídicas ativas com CNPJ válido na Receita Federal. "
+            "O valor total da base empresarial exclui R$ 29,66 milhões (141 contratos no exercício de 2026) referentes a contratações celebradas com "
+            "pessoas físicas (CPFs — locações prediais de imóveis, consultorias e serviços autônomos) ou cadastros com identificador não informado na origem."
+        )
+
         col_uf1, col_uf2 = st.columns(2)
         
         # Agrupa as Top 5 UFs e consolida o restante como "Outras UFs" para despoluir a rosca
