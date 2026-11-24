@@ -5,7 +5,7 @@ import sys
 import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils import set_page_config, get_db_connection, render_sidebar_docs
+from utils import set_page_config, get_db_connection, render_sidebar_docs, aplicar_estilo_grafico
 
 set_page_config("Base Legal e Regulatória")
 render_sidebar_docs()
@@ -105,16 +105,25 @@ with tab1:
             x='Quantidade', 
             y='Tipologia',
             orientation='h',
+            text='Quantidade',
             color='Tipologia',
+            labels={'Quantidade': '<b>Quantidade de Normas</b>', 'Tipologia': '<b>Tipologia</b>'},
+            title="<b>Distribuição por Tipologia Normativa</b>",
             color_discrete_sequence=px.colors.qualitative.Prism
         )
-        fig_tipo.update_layout(yaxis={'categoryorder':'total ascending'}, showlegend=False)
-        st.plotly_chart(fig_tipo, use_container_width=True)
+        fig_tipo.update_traces(
+            texttemplate="<b>%{text}</b>",
+            textposition="outside",
+            showlegend=False
+        )
+        fig_tipo.update_layout(yaxis={'categoryorder':'total ascending', 'title': ''})
+        aplicar_estilo_grafico(fig_tipo, altura=380)
+        st.plotly_chart(fig_tipo, width="stretch")
         
         st.markdown("**Temas por Tipologia**")
         st.dataframe(
             df_iaan[['Tipologia', 'Tema', 'Norma']].sort_values(['Tipologia', 'Tema']),
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
 
@@ -129,10 +138,19 @@ with tab1:
             x='IAAN (%)', 
             y='Tema',
             orientation='h',
+            text='IAAN (%)',
+            labels={'IAAN (%)': '<b>Grau de Integração Normativa (%)</b>', 'Tema': '<b>Eixo Temático</b>'},
+            title="<b>Índice IAAN por Eixo Temático</b>",
             color_discrete_sequence=['#CC7952']
         )
-        fig_iaan.update_xaxes(range=[0, 100])
-        st.plotly_chart(fig_iaan, use_container_width=True)
+        fig_iaan.update_traces(
+            texttemplate="<b>%{text:.1f}%</b>",
+            textposition="outside"
+        )
+        fig_iaan.update_layout(yaxis={'title': ''})
+        fig_iaan.update_xaxes(range=[0, 105])
+        aplicar_estilo_grafico(fig_iaan, altura=420)
+        st.plotly_chart(fig_iaan, width="stretch")
 
 # === ABA 2: PB x SE ===
 with tab2:
@@ -142,7 +160,7 @@ with tab2:
     # Renderiza a tabela de forma amigável
     st.dataframe(
         df_se, 
-        use_container_width=True, 
+        width="stretch", 
         hide_index=True,
         column_config={
             "Tema": st.column_config.TextColumn("Eixo Temático", width="medium"),
@@ -165,19 +183,19 @@ with tab3:
         
         fig_heat = px.imshow(
             df_heat,
-            labels=dict(x="Referencial Teórico", y="Norma Base", color="Score de Aderência"),
+            labels=dict(x="<b>Referencial Teórico</b>", y="<b>Norma Base</b>", color="<b>Score</b>"),
             x=['Keynes', 'Furtado', 'Schumpeter'],
             y=df_heat.index,
-            color_continuous_scale='YlGnBu', # Escala de cor que vai do amarelo claro (0) ao azul escuro (1)
+            color_continuous_scale='YlGnBu',
             aspect="auto"
         )
         fig_heat.update_xaxes(side="bottom")
         
         # Define o tamanho do gráfico baseado na quantidade de linhas
         altura_grafico = max(500, len(df_heat) * 30)
-        fig_heat.update_layout(height=altura_grafico)
+        aplicar_estilo_grafico(fig_heat, altura=altura_grafico)
         
-        st.plotly_chart(fig_heat, use_container_width=True)
+        st.plotly_chart(fig_heat, width="stretch")
     else:
         st.warning("Não há dados teóricos disponíveis no momento para gerar o Heatmap.")
 

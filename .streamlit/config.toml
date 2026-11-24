@@ -6,3 +6,18 @@ headless = true
 enableCORS = false
 enableXsrfProtection = false
 
+[theme]
+base = "light"
+primaryColor = "#0f52ba"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f8fafc"
+textColor = "#0f172a"
+borderColor = "#cbd5e1"
+font = "sans-serif"
+baseFontSize = 15
+baseFontWeight = 500
+baseRadius = "8px"
+showWidgetBorder = true
+showSidebarBorder = true
+chartCategoricalColors = ["#0f52ba", "#16a34a", "#d97706", "#7c3aed", "#dc2626", "#0284c7", "#0f766e", "#64748b"]
+

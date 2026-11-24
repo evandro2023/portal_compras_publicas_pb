@@ -6,7 +6,7 @@ import os
 
 # Ajusta o path para importar utils da raiz do portal
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils import set_page_config, get_db_connection, render_sidebar_docs
+from utils import set_page_config, get_db_connection, render_sidebar_docs, aplicar_estilo_grafico
 
 # Configuração da página
 set_page_config("Módulo de Compras Públicas")
@@ -85,9 +85,9 @@ with tab1:
     valor_total_formatado = f"R$ {valor_total:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
     with col1:
-        st.metric(label="Valor Total Adjudicado", value=valor_total_formatado)
+        st.metric(label="Valor Total Adjudicado", value=valor_total_formatado, border=True)
     with col2:
-        st.metric(label="Total de Processos", value=f"{num_contratacoes:,}".replace(",", "."))
+        st.metric(label="Total de Processos", value=f"{num_contratacoes:,}".replace(",", "."), border=True)
 
     st.markdown("---")
 
@@ -104,11 +104,18 @@ with tab1:
             x='valorAdjudicado', 
             y='nomeOrgao',
             orientation='h',
-            labels={'valorAdjudicado': 'Valor (R$)', 'nomeOrgao': 'Órgão'},
+            text='valorAdjudicado',
+            labels={'valorAdjudicado': '<b>Valor (R$)</b>', 'nomeOrgao': '<b>Órgão Contratante</b>'},
+            title="<b>Volume Adjudicado por Órgão</b>",
             color_discrete_sequence=['#0056b3']
         )
-        fig_orgao.update_layout(yaxis={'categoryorder':'total ascending'})
-        st.plotly_chart(fig_orgao, use_container_width=True)
+        fig_orgao.update_traces(
+            texttemplate="<b>R$ %{text:,.2s}</b>",
+            textposition="outside"
+        )
+        fig_orgao.update_layout(yaxis={'categoryorder':'total ascending', 'title': ''})
+        aplicar_estilo_grafico(fig_orgao, altura=380)
+        st.plotly_chart(fig_orgao, width="stretch")
 
     with col2:
         st.subheader("Compras por Modalidade")
@@ -119,9 +126,20 @@ with tab1:
             values='valorAdjudicado', 
             names='modalidade',
             hole=0.4,
-            color_discrete_sequence=px.colors.qualitative.Pastel
+            title="<b>Participação por Modalidade</b>",
+            color_discrete_sequence=px.colors.qualitative.Safe
         )
-        st.plotly_chart(fig_mod, use_container_width=True)
+        fig_mod.update_traces(
+            textinfo="percent+label",
+            textfont=dict(color="#0f172a", size=12, family="sans-serif")
+        )
+        fig_mod.update_layout(
+            font=dict(family="sans-serif", size=13, color="#0f172a"),
+            title=dict(font=dict(size=15, color="#0f172a")),
+            height=380,
+            margin=dict(l=15, r=15, t=45, b=25)
+        )
+        st.plotly_chart(fig_mod, width="stretch")
 
     st.markdown("---")
     st.subheader("Amparo Legal (Base Normativa)")
@@ -138,11 +156,18 @@ with tab1:
         x='valorAdjudicado', 
         y='amparoLegal',
         orientation='h',
-        labels={'valorAdjudicado': 'Valor Adjudicado (R$)', 'amparoLegal': 'Base Legal'},
+        text='valorAdjudicado',
+        labels={'valorAdjudicado': '<b>Valor Adjudicado (R$)</b>', 'amparoLegal': '<b>Base Legal</b>'},
+        title="<b>Volume por Base Normativa / Amparo Legal</b>",
         color_discrete_sequence=['#8c564b']
     )
-    fig_amparo.update_layout(yaxis={'categoryorder':'total ascending'})
-    st.plotly_chart(fig_amparo, use_container_width=True)
+    fig_amparo.update_traces(
+        texttemplate="<b>R$ %{text:,.2s}</b>",
+        textposition="outside"
+    )
+    fig_amparo.update_layout(yaxis={'categoryorder':'total ascending', 'title': ''})
+    aplicar_estilo_grafico(fig_amparo, altura=380)
+    st.plotly_chart(fig_amparo, width="stretch")
     
     st.markdown("**Detalhamento por Base Normativa**")
     df_amparo_table = df_filtrado_contratacoes.groupby('amparoLegal').agg(
@@ -156,7 +181,7 @@ with tab1:
         df_amparo_table.style.format({
             'Valor_Total': 'R$ {:,.2f}'
         }),
-        use_container_width=True,
+        width="stretch",
         hide_index=True
     )
 
@@ -170,9 +195,9 @@ with tab2:
     valor_contratos_fmt = f"R$ {valor_contratos:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     
     c1, c2, c3 = st.columns(3)
-    c1.metric(label="Volume Financeiro dos Contratos", value=valor_contratos_fmt)
-    c2.metric(label="Total de Contratos", value=f"{num_contratos:,}".replace(",", "."))
-    c3.metric(label="Fornecedores Distintos", value=f"{num_fornecedores:,}".replace(",", "."))
+    c1.metric(label="Volume Financeiro dos Contratos", value=valor_contratos_fmt, border=True)
+    c2.metric(label="Total de Contratos", value=f"{num_contratos:,}".replace(",", "."), border=True)
+    c3.metric(label="Fornecedores Distintos", value=f"{num_fornecedores:,}".replace(",", "."), border=True)
     
     st.markdown("---")
 
@@ -189,11 +214,18 @@ with tab2:
             x='valorTotal', 
             y='contratado',
             orientation='h',
-            labels={'valorTotal': 'Valor Contratado (R$)', 'contratado': 'Fornecedor'},
+            text='valorTotal',
+            labels={'valorTotal': '<b>Valor Contratado (R$)</b>', 'contratado': '<b>Fornecedor</b>'},
+            title="<b>Top 10 Fornecedores Contratados</b>",
             color_discrete_sequence=['#28a745']
         )
-        fig_forn.update_layout(yaxis={'categoryorder':'total ascending'})
-        st.plotly_chart(fig_forn, use_container_width=True)
+        fig_forn.update_traces(
+            texttemplate="<b>R$ %{text:,.2s}</b>",
+            textposition="outside"
+        )
+        fig_forn.update_layout(yaxis={'categoryorder':'total ascending', 'title': ''})
+        aplicar_estilo_grafico(fig_forn, altura=380)
+        st.plotly_chart(fig_forn, width="stretch")
 
     with col2_2:
         st.subheader("Top 10 Municípios (Sede ou Execução)")
@@ -208,11 +240,18 @@ with tab2:
             x='valorTotal', 
             y='municipio',
             orientation='h',
-            labels={'valorTotal': 'Valor (R$)', 'municipio': 'Município'},
+            text='valorTotal',
+            labels={'valorTotal': '<b>Valor (R$)</b>', 'municipio': '<b>Município</b>'},
+            title="<b>Top 10 Municípios de Contratação</b>",
             color_discrete_sequence=['#17a2b8']
         )
-        fig_mun.update_layout(yaxis={'categoryorder':'total ascending'})
-        st.plotly_chart(fig_mun, use_container_width=True)
+        fig_mun.update_traces(
+            texttemplate="<b>R$ %{text:,.2s}</b>",
+            textposition="outside"
+        )
+        fig_mun.update_layout(yaxis={'categoryorder':'total ascending', 'title': ''})
+        aplicar_estilo_grafico(fig_mun, altura=380)
+        st.plotly_chart(fig_mun, width="stretch")
 
     # --- TABELA DE DADOS ---
     st.markdown("---")

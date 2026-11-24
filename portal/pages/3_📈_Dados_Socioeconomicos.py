@@ -6,7 +6,7 @@ import os
 
 # Ajusta o path para importar utils da raiz do portal
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils import set_page_config, get_db_connection, render_sidebar_docs
+from utils import set_page_config, get_db_connection, render_sidebar_docs, aplicar_estilo_grafico
 
 # Configuração da página
 set_page_config("Módulo de Dados Econômicos & CAGED")
@@ -205,11 +205,13 @@ with tab_associacao:
                 text="total_compras",
                 color="total_compras",
                 hover_name="macro_setor",
-                labels={"macro_setor": "Setor Econômico", "total_compras": "Valor Adjudicado (R$)"},
+                labels={"macro_setor": "<b>Setor Econômico</b>", "total_compras": "<b>Valor Adjudicado (R$)</b>"},
+                title=f"<b>Compras Públicas por Macrosetor ({ano_selecionado})</b>",
                 color_continuous_scale="Blues"
             )
-            fig_compras.update_traces(texttemplate='R$ %{text:,.2s}', textposition='outside')
-            fig_compras.update_layout(yaxis=dict(autorange="reversed"), coloraxis_showscale=False)
+            fig_compras.update_traces(texttemplate='<b>R$ %{text:,.2s}</b>', textposition='outside')
+            fig_compras.update_layout(yaxis=dict(autorange="reversed", title=""), coloraxis_showscale=False)
+            aplicar_estilo_grafico(fig_compras, altura=380)
             st.plotly_chart(fig_compras, width="stretch")
         else:
             st.info("Sem dados de compras para o ano selecionado.")
@@ -225,11 +227,13 @@ with tab_associacao:
                 text="saldo_empregos",
                 color="saldo_empregos",
                 hover_name="macro_setor",
-                labels={"macro_setor": "Setor Econômico", "saldo_empregos": "Saldo de Empregos (CAGED)"},
+                labels={"macro_setor": "<b>Setor Econômico</b>", "saldo_empregos": "<b>Saldo de Empregos (CAGED)</b>"},
+                title=f"<b>Saldo de Empregos Formais por Setor ({ano_selecionado})</b>",
                 color_continuous_scale=["#d9534f", "#5cb85c"]
             )
-            fig_empregos.update_traces(texttemplate='%{text:+d}', textposition='outside')
-            fig_empregos.update_layout(yaxis=dict(autorange="reversed"), coloraxis_showscale=False)
+            fig_empregos.update_traces(texttemplate='<b>%{text:+d}</b>', textposition='outside')
+            fig_empregos.update_layout(yaxis=dict(autorange="reversed", title=""), coloraxis_showscale=False)
+            aplicar_estilo_grafico(fig_empregos, altura=380)
             st.plotly_chart(fig_empregos, width="stretch")
         else:
             st.info("Sem dados de saldo do CAGED para o ano selecionado.")
@@ -342,6 +346,7 @@ with tab_associacao:
                 values="valor_total_contratado",
                 hover_data=["num_empresas"],
                 labels={"uf": "Estado (UF)", "valor_total_contratado": "Valor Contratado (R$)", "num_empresas": "Empresas"},
+                title="<b>Origem dos Recursos por Estado</b>",
                 color="uf",
                 color_discrete_map={
                     "PB": "#2ca02c",      # Verde para Paraíba (Local)
@@ -353,7 +358,16 @@ with tab_associacao:
                 },
                 hole=0.4
             )
-            fig_uf_pie.update_traces(textinfo="percent+label")
+            fig_uf_pie.update_traces(
+                textinfo="percent+label",
+                textfont=dict(color="#0f172a", size=12, family="sans-serif")
+            )
+            fig_uf_pie.update_layout(
+                font=dict(family="sans-serif", size=13, color="#0f172a"),
+                title=dict(font=dict(size=15, color="#0f172a")),
+                height=380,
+                margin=dict(l=15, r=15, t=45, b=25)
+            )
             st.plotly_chart(fig_uf_pie, width="stretch")
 
 
@@ -366,9 +380,11 @@ with tab_associacao:
                 color="origem_tipo",
                 text="valor_total_contratado",
                 color_discrete_map={"Paraíba (Retenção Local)": "#2ca02c", "Outras UFs (Vazamento de Renda)": "#1f77b4"},
-                labels={"uf": "UF do Fornecedor", "valor_total_contratado": "Valor Total Contratado (R$)"}
+                labels={"uf": "<b>UF do Fornecedor</b>", "valor_total_contratado": "<b>Valor Contratado (R$)</b>"},
+                title="<b>Volume Contratado por UF de Origem</b>"
             )
-            fig_uf_bar.update_traces(texttemplate='R$ %{text:,.2s}', textposition='outside')
+            fig_uf_bar.update_traces(texttemplate='<b>R$ %{text:,.2s}</b>', textposition='outside')
+            aplicar_estilo_grafico(fig_uf_bar, altura=380)
             st.plotly_chart(fig_uf_bar, width="stretch")
     else:
         st.info("Painel de retração territorial em sincronização...")
@@ -416,13 +432,14 @@ with tab_mensal:
             x="mes_label",
             y="saldo",
             text="saldo",
-            labels={"mes_label": "Mês", "saldo": "Saldo de Empregos"},
-            title=f"Saldo Líquido de Empregos por Mês ({ano_selecionado})",
+            labels={"mes_label": "<b>Mês</b>", "saldo": "<b>Saldo de Empregos</b>"},
+            title=f"<b>Saldo Líquido de Empregos por Mês ({ano_selecionado})</b>",
             color="saldo",
             color_continuous_scale=["#d9534f", "#f0ad4e", "#5cb85c"]
         )
-        fig_mensal.update_traces(texttemplate='%{text:+d}', textposition='outside')
+        fig_mensal.update_traces(texttemplate='<b>%{text:+d}</b>', textposition='outside')
         fig_mensal.update_layout(coloraxis_showscale=False)
+        aplicar_estilo_grafico(fig_mensal, altura=380)
         st.plotly_chart(fig_mensal, width="stretch")
     else:
         st.info("Coluna de mês ou saldo não disponível para este nível.")
@@ -464,11 +481,13 @@ with tab_setores:
                 color="saldo",
                 hover_name="nome_completo",
                 hover_data={"eixo_y_label": False, "saldo": True},
-                labels={"eixo_y_label": "Classe CNAE", "saldo": "Saldo de Empregos"},
+                labels={"eixo_y_label": "<b>Classe CNAE</b>", "saldo": "<b>Saldo de Empregos</b>"},
+                title="<b>Maiores Saldos Positivos (CAGED)</b>",
                 color_continuous_scale="Greens"
             )
-            fig_g.update_traces(texttemplate='%{text:+d}', textposition='outside')
-            fig_g.update_layout(yaxis=dict(autorange="reversed"), coloraxis_showscale=False)
+            fig_g.update_traces(texttemplate='<b>%{text:+d}</b>', textposition='outside')
+            fig_g.update_layout(yaxis=dict(autorange="reversed", title=""), coloraxis_showscale=False)
+            aplicar_estilo_grafico(fig_g, altura=380)
             st.plotly_chart(fig_g, width="stretch")
 
         with col_p:
@@ -482,11 +501,13 @@ with tab_setores:
                 color="saldo",
                 hover_name="nome_completo",
                 hover_data={"eixo_y_label": False, "saldo": True},
-                labels={"eixo_y_label": "Classe CNAE", "saldo": "Saldo de Empregos"},
+                labels={"eixo_y_label": "<b>Classe CNAE</b>", "saldo": "<b>Saldo de Empregos</b>"},
+                title="<b>Maiores Saldos Negativos (CAGED)</b>",
                 color_continuous_scale="Reds_r"
             )
-            fig_p.update_traces(texttemplate='%{text:+d}', textposition='outside')
-            fig_p.update_layout(yaxis=dict(autorange="reversed"), coloraxis_showscale=False)
+            fig_p.update_traces(texttemplate='<b>%{text:+d}</b>', textposition='outside')
+            fig_p.update_layout(yaxis=dict(autorange="reversed", title=""), coloraxis_showscale=False)
+            aplicar_estilo_grafico(fig_p, altura=380)
             st.plotly_chart(fig_p, width="stretch")
 
 with tab_tabela:

@@ -270,25 +270,77 @@ def set_page_config(page_title="Portal Compras PB"):
         initial_sidebar_state="expanded"
     )
     
+def aplicar_estilo_grafico(fig, altura=None):
+    """Aplica formatação padronizada de alta visibilidade e contraste nos gráficos Plotly.
+    
+    - Eixos X e Y escuros, nítidos e com fonte em negrito.
+    - Valores das barras em negrito com fonte escura e legível.
+    - Gridlines suaves e background transparente.
+    """
+    if fig is None:
+        return fig
+
+    estilo_eixo = dict(
+        tickfont=dict(color="#0f172a", size=12, family="sans-serif"),
+        title_font=dict(color="#0f172a", size=13, family="sans-serif"),
+        showline=True,
+        linecolor="#334155",
+        linewidth=1.5,
+        gridcolor="#e2e8f0",
+        zerolinecolor="#cbd5e1",
+    )
+
+    fig.update_layout(
+        font=dict(family="sans-serif", size=13, color="#0f172a"),
+        title=dict(font=dict(size=15, color="#0f172a", family="sans-serif")),
+        xaxis=estilo_eixo,
+        yaxis=estilo_eixo,
+        plot_bgcolor="rgba(248, 250, 252, 0.4)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=15, r=40, t=45, b=25)
+    )
+
+    if altura:
+        fig.update_layout(height=altura)
+
+    try:
+        fig.update_traces(
+            textfont=dict(color="#0f172a", size=12, family="sans-serif"),
+            cliponaxis=False
+        )
+    except Exception:
+        pass
+
+    return fig
+
+
 def render_sidebar_docs():
     """
-    Renderiza um painel na barra lateral com links para a documentação técnica do projeto.
+    Renderiza um painel na barra lateral com atalhos de navegação rápida e links para a documentação técnica.
     """
+    st.sidebar.markdown("### 🧭 Navegação Rápida")
+    st.sidebar.page_link("app.py", label="Início / Visão Geral", icon="🏠")
+    st.sidebar.page_link("pages/1_🛍️_Compras_Publicas.py", label="1. Compras Públicas", icon="🛍️")
+    st.sidebar.page_link("pages/5_🏭_Perfil_Produtivo_CNAE.py", label="2. Perfil Produtivo & CNAE", icon="🏭")
+    st.sidebar.page_link("pages/3_📈_Dados_Socioeconomicos.py", label="3. Dados Socioeconômicos", icon="📈")
+    st.sidebar.page_link("pages/2_⚖️_Base_Legal.py", label="4. Base Legal & Regulatória", icon="⚖️")
+    st.sidebar.page_link("pages/4_📝_Curadoria_Manual.py", label="5. Curadoria Normativa", icon="📝")
+
     st.sidebar.markdown("---")
     st.sidebar.markdown("### 📚 Documentação do Projeto")
     st.sidebar.markdown("Acompanhe os referenciais e metodologias da pesquisa:")
     
-    # Link direto para o PDF no repositório GitHub (ideal para a nuvem do Streamlit)
+    # Link direto para o PDF no repositório GitHub
     pdf_url = "https://github.com/evandro2023/portal_compras_publicas_pb/blob/main/documentacao/relatorio_compras_pb_gov.pdf"
-    st.sidebar.markdown(f"📄 [Relatório Analítico Metodológico (PDF)]({pdf_url})")
+    st.sidebar.markdown(f"📄 [Relatório Metodológico (PDF)]({pdf_url})")
     
     # Link para o README
     readme_url = "https://github.com/evandro2023/portal_compras_publicas_pb/blob/main/README.md"
-    st.sidebar.markdown(f"📖 [Visão Geral e Arquitetura (README)]({readme_url})")
+    st.sidebar.markdown(f"📖 [Visão Geral e Arquitetura]({readme_url})")
     
     st.sidebar.markdown("---")
-    st.sidebar.caption("© 2026 Portal Compras Públicas PB. Licença MIT.")
-    st.sidebar.caption("🤖 *Desenvolvimento auxiliado por Agentes de IA (Google Gemini).*")
+    st.sidebar.caption("© 2026 Portal Compras Públicas PB.")
+    st.sidebar.caption("🤖 *SUDENE / Governo da Paraíba.*")
 
 def render_custom_css():
     """

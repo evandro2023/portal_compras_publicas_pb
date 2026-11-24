@@ -517,3 +517,15 @@ Relatórios:
 - **Reconciliação Exata dos Totais da Abordagem 1 (R$ 326,89 mi vs R$ 431,70 mi):**
   - *Identificação do Desvio de R$ 104,81 mi (8 contratos agrícolas da SEDAP):* O casting de códigos CNAE em formato ponto-flutuante (`float`) do pandas (ex.: `163600.0`, `141501.0`) gerava truncamento na remoção de caracteres não numéricos (`re.sub`), transformando-os em `1636000` e lendo os 2 primeiros dígitos como Divisão 16 (Madeira) e 14 (Vestuário). Com a implementação de `normalizar_cnae()` garantindo formatação inteira e preenchimento com zeros à esquerda (`zfill(7)`), os contratos voltaram à Divisão 01 (Agropecuária).
   - *Identificação da Quantidade de Contratos (360 CGE vs 422 Total c/ PNCP):* A contagem de 360 contratos no relatório técnico decorreu do uso de `COUNT(DISTINCT c.registroCge)`, que no SQL padrão desconsidera valores nulos (`NULL`). Os 62 contratos adicionais pertencem à base do PNCP (com valor somado de R$ 2,18 mi, já incluso nos R$ 326,89 mi). O portal agora exibe explicitamente `360 (CGE)` e o total consolidado de `422 (c/ PNCP)`, alinhando 100% dos dados com o relatório do GT.
+
+## Histórico de Decisões Técnicas (Etapa 10 - Reestruturação de Visibilidade, Negrito nos Gráficos e Navegabilidade)
+
+- **Padronização Visual de Gráficos de Alto Contraste (`portal/utils.py`):**
+  - Criada a função `aplicar_estilo_grafico(fig, altura)` que padroniza os eixos X e Y de todos os gráficos Plotly com linhas sólidas de contraste (`#334155`), fontes escuras (`#0f172a`), títulos dos eixos em negrito (`<b>...</b>`), e valores diretamente nas barras em negrito (`texttemplate="<b>R$ %{text:,.2s}</b>"` ou `<b>%{text}</b>`).
+  - Substituídos os componentes `st.bar_chart` das páginas por gráficos horizontais Plotly completos e legíveis, garantindo consistência visual em todas as 4 abas do módulo de Perfil Produtivo e nos módulos de Compras Públicas, Socioeconômico e Base Legal.
+- **Aprimoramento do Tema Global (`.streamlit/config.toml`):**
+  - Configurados tokens de alto contraste: `textColor = "#0f172a"`, `primaryColor = "#0f52ba"`, `secondaryBackgroundColor = "#f8fafc"`, `borderColor = "#cbd5e1"`, `baseFontWeight = 500` e paleta categórica nítida.
+- **Reestruturação da Navegabilidade e da Página Inicial (`portal/app.py` & `portal/utils.py`):**
+  - Substituição de tags HTML estáticas por `st.page_link` nativos do Streamlit, permitindo transição SPA suave sem recarregar a janela.
+  - Implementação de cards executivos de panorama geral com `st.container(border=True)` na home (Volume Analisado, Contratos, Exercícios e Escopo Territorial) e grid estruturado para os 5 módulos de inteligência.
+  - Adicionado menu lateral de navegação rápida com links diretos em `render_sidebar_docs()`.

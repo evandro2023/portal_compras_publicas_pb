@@ -29,6 +29,7 @@ try:
         categorizar_ibge_pim_estrito,
         categorizar_ibge_cadeia_ampla,
         categorizar_grande_setor,
+        aplicar_estilo_grafico,
     )
 except Exception:
     import utils
@@ -41,6 +42,7 @@ except Exception:
     def categorizar_ibge_pim_estrito(c): return getattr(utils, 'categorizar_ibge_pim_estrito', lambda x: None)(c)
     def categorizar_ibge_cadeia_ampla(c): return getattr(utils, 'categorizar_ibge_cadeia_ampla', lambda x: 'Não Classificado')(c)
     def categorizar_grande_setor(c): return getattr(utils, 'categorizar_grande_setor', lambda x: 'Não Classificado')(c)
+    def aplicar_estilo_grafico(f, altura=None): return getattr(utils, 'aplicar_estilo_grafico', lambda fig, a=None: fig)(f, altura)
 
 set_page_config(page_title="Perfil Produtivo e CNAE - Portal Compras PB")
 render_custom_css()
@@ -216,11 +218,11 @@ valor_me_epp = df_base[df_base["is_me_epp"] == "Sim (ME/EPP)"]["valorTotal"].sum
 pct_me_epp = (valor_me_epp / total_valor * 100) if total_valor > 0 else 0
 
 col1, col2, col3, col4, col5 = st.columns(5)
-col1.metric("Valor Total Analisado", f"R$ {total_valor:,.2f}")
-col2.metric("Total de Contratos", f"{total_contratos:,}")
-col3.metric("Part. Capital (PB)", f"{pct_capital:.1f}%", f"R$ {valor_capital:,.2f}")
-col4.metric("Part. Interior (PB)", f"{pct_interior:.1f}%", f"R$ {valor_interior:,.2f}")
-col5.metric("Part. ME/EPP", f"{pct_me_epp:.1f}%", f"R$ {valor_me_epp:,.2f}")
+col1.metric("Valor Total Analisado", f"R$ {total_valor:,.2f}", border=True)
+col2.metric("Total de Contratos", f"{total_contratos:,}", border=True)
+col3.metric("Part. Capital (PB)", f"{pct_capital:.1f}%", f"R$ {valor_capital:,.2f}", border=True)
+col4.metric("Part. Interior (PB)", f"{pct_interior:.1f}%", f"R$ {valor_interior:,.2f}", border=True)
+col5.metric("Part. ME/EPP", f"{pct_me_epp:.1f}%", f"R$ {valor_me_epp:,.2f}", border=True)
 
 st.markdown("---")
 
@@ -242,14 +244,35 @@ with tab_loc:
         total_contratos=("valorTotal", "count")
     ).sort_values("total_valor", ascending=False)
     
-    df_loc["percentual"] = (df_loc["total_valor"] / total_valor * 100).round(2)
+    df_loc["percentual"] = (df_loc["total_valor"] / total_valor * 100).round(2) if total_valor > 0 else 0
     
     col_chart, col_data = st.columns([3, 2])
     with col_chart:
-        st.bar_chart(
-            data=df_loc.set_index("localizacao_categoria")["total_valor"],
-            height=350
+        fig_loc = px.bar(
+            df_loc,
+            x="total_valor",
+            y="localizacao_categoria",
+            orientation="h",
+            text="total_valor",
+            color="localizacao_categoria",
+            labels={"total_valor": "<b>Volume Contratado (R$)</b>", "localizacao_categoria": "<b>Localização</b>"},
+            title="<b>Volume Contratado por Localização do Fornecedor</b>",
+            color_discrete_map={
+                "Capital (PB)": "#0f52ba",
+                "Interior (PB)": "#16a34a",
+                "Nordeste (Demais UFs)": "#d97706",
+                "Fora do Nordeste": "#dc2626",
+                "Não Identificado": "#94a3b8"
+            }
         )
+        fig_loc.update_traces(
+            texttemplate="<b>R$ %{text:,.2s}</b>",
+            textposition="outside",
+            showlegend=False
+        )
+        fig_loc.update_layout(yaxis={"categoryorder": "total ascending", "title": ""})
+        aplicar_estilo_grafico(fig_loc, altura=360)
+        st.plotly_chart(fig_loc, width="stretch")
     
     with col_data:
         st.dataframe(
@@ -276,26 +299,52 @@ with tab_tec:
         total_contratos=("valorTotal", "count")
     ).sort_values("total_valor", ascending=False)
     
-    df_tec["percentual"] = (df_tec["total_valor"] / total_valor * 100).round(2)
+    df_tec["percentual"] = (df_tec["total_valor"] / total_valor * 100).round(2) if total_valor > 0 else 0
     
-    st.bar_chart(
-        data=df_tec.set_index("intensidade_tecnologica")["total_valor"],
-        height=350
-    )
+    col_tec_chart, col_tec_data = st.columns([3, 2])
+    with col_tec_chart:
+        fig_tec = px.bar(
+            df_tec,
+            x="total_valor",
+            y="intensidade_tecnologica",
+            orientation="h",
+            text="total_valor",
+            color="intensidade_tecnologica",
+            labels={"total_valor": "<b>Volume Contratado (R$)</b>", "intensidade_tecnologica": "<b>Intensidade Tecnológica</b>"},
+            title="<b>Volume por Intensidade Tecnológica (OCDE/IBGE)</b>",
+            color_discrete_map={
+                "Alta Intensidade Tecnológica": "#7c3aed",
+                "Média-Alta Intensidade Tecnológica": "#0284c7",
+                "Média-Baixa Intensidade Tecnológica": "#0f766e",
+                "Baixa Intensidade Tecnológica": "#16a34a",
+                "Alta Intensidade Tecnológica (Serviços KIS)": "#d97706",
+                "Serviços e Outros (Não-Industrial)": "#64748b",
+                "Não Classificado": "#94a3b8"
+            }
+        )
+        fig_tec.update_traces(
+            texttemplate="<b>R$ %{text:,.2s}</b>",
+            textposition="outside",
+            showlegend=False
+        )
+        fig_tec.update_layout(yaxis={"categoryorder": "total ascending", "title": ""})
+        aplicar_estilo_grafico(fig_tec, altura=380)
+        st.plotly_chart(fig_tec, width="stretch")
     
-    st.dataframe(
-        df_tec.rename(columns={
-            "intensidade_tecnologica": "Intensidade Tecnológica",
-            "total_valor": "Valor Total (R$)",
-            "total_contratos": "Contratos",
-            "percentual": "Part. (%)"
-        }),
-        column_config={
-            "Valor Total (R$)": st.column_config.NumberColumn(format="R$ %,.2f"),
-            "Part. (%)": st.column_config.NumberColumn(format="%.2f %%")
-        },
-        hide_index=True
-    )
+    with col_tec_data:
+        st.dataframe(
+            df_tec.rename(columns={
+                "intensidade_tecnologica": "Intensidade Tecnológica",
+                "total_valor": "Valor Total (R$)",
+                "total_contratos": "Contratos",
+                "percentual": "Part. (%)"
+            }),
+            column_config={
+                "Valor Total (R$)": st.column_config.NumberColumn(format="R$ %,.2f"),
+                "Part. (%)": st.column_config.NumberColumn(format="%.2f %%")
+            },
+            hide_index=True
+        )
 
 # --- ABA 3: SETOR ECONÔMICO ---
 with tab_setor:
@@ -352,15 +401,16 @@ with tab_setor:
         pct_sobre_global = (total_ab1_valor / total_valor * 100) if total_valor > 0 else 0
 
         k1, k2, k3, k4 = st.columns(4)
-        k1.metric("Volume Direto Fabril", f"R$ {total_ab1_valor:,.2f}")
+        k1.metric("Volume Direto Fabril", f"R$ {total_ab1_valor:,.2f}", border=True)
         k2.metric(
             "Contratos com Fábricas",
             f"{total_ab1_cge:,}",
             f"{total_ab1_qtd:,} total c/ PNCP",
-            help=f"Total de {total_ab1_cge:,} contratos com registro estadual CGE (conforme tabela do Relatório GT 02) ou {total_ab1_qtd:,} considerando a base integral com registros PNCP."
+            help=f"Total de {total_ab1_cge:,} contratos com registro estadual CGE (conforme tabela do Relatório GT 02) ou {total_ab1_qtd:,} considerando a base integral com registros PNCP.",
+            border=True
         )
-        k3.metric("Part. sobre Bens Físicos", f"{pct_sobre_bens:.1f}%")
-        k4.metric("Part. no Total Global", f"{pct_sobre_global:.2f}%")
+        k3.metric("Part. sobre Bens Físicos", f"{pct_sobre_bens:.1f}%", border=True)
+        k4.metric("Part. no Total Global", f"{pct_sobre_global:.2f}%", border=True)
 
         if df_ab1.empty:
             st.info("Nenhum contrato com indústrias fabricantes encontrado para os filtros selecionados.")
@@ -382,21 +432,19 @@ with tab_setor:
                     orientation="h",
                     text="total_valor",
                     color="categoria_ibge_estrita",
-                    labels={"total_valor": "Volume Contratado (R$)", "categoria_ibge_estrita": "Categoria PIM-PF"},
-                    title=f"Indústria Fabricante por Categoria PIM-PF — {selected_ano if selected_ano != 'Todos' else 'Consolidado'}",
+                    labels={"total_valor": "<b>Volume Contratado (R$)</b>", "categoria_ibge_estrita": "<b>Categoria PIM-PF</b>"},
+                    title=f"<b>Indústria Fabricante por Categoria PIM-PF — {selected_ano if selected_ano != 'Todos' else 'Consolidado'}</b>",
                     color_discrete_map=cores_pim
                 )
                 fig_pim.update_traces(
-                    texttemplate="R$ %{text:,.2s}",
+                    texttemplate="<b>R$ %{text:,.2s}</b>",
                     textposition="outside",
                     showlegend=False
                 )
                 fig_pim.update_layout(
-                    yaxis={"categoryorder": "total ascending", "title": ""},
-                    xaxis={"title": "Volume Financeiro (R$)"},
-                    height=360,
-                    margin=dict(l=10, r=40, t=40, b=10)
+                    yaxis={"categoryorder": "total ascending", "title": ""}
                 )
+                aplicar_estilo_grafico(fig_pim, altura=370)
                 st.plotly_chart(fig_pim, width="stretch")
 
             with c_tbl:
@@ -441,10 +489,10 @@ with tab_setor:
         qtd_bens = len(df_bens)
 
         k1, k2, k3, k4 = st.columns(4)
-        k1.metric("Total da Cadeia de Bens", f"R$ {total_bens:,.2f}")
-        k2.metric("Contratos de Bens Físicos", f"{qtd_bens:,}")
-        k3.metric("Part. no Orçamento Global", f"{(total_bens / total_valor * 100):.1f}%" if total_valor > 0 else "0.0%")
-        k4.metric("Volume Global de Contratos", f"R$ {total_valor:,.2f}")
+        k1.metric("Total da Cadeia de Bens", f"R$ {total_bens:,.2f}", border=True)
+        k2.metric("Contratos de Bens Físicos", f"{qtd_bens:,}", border=True)
+        k3.metric("Part. no Orçamento Global", f"{(total_bens / total_valor * 100):.1f}%" if total_valor > 0 else "0.0%", border=True)
+        k4.metric("Volume Global de Contratos", f"R$ {total_valor:,.2f}", border=True)
 
         visao_ampla = st.radio(
             "**Nível de Detalhamento:**",
@@ -459,7 +507,7 @@ with tab_setor:
             ).sort_values("total_valor", ascending=False)
             df_amplo_grp["percentual"] = (df_amplo_grp["total_valor"] / total_bens * 100).round(2) if total_bens > 0 else 0
             df_amplo_grp["ticket_medio"] = (df_amplo_grp["total_valor"] / df_amplo_grp["total_contratos"]).round(2) if len(df_amplo_grp) > 0 else 0
-            titulo_grafico = f"Cadeia Ampla de Bens (PIM-PF + Atacado) — {selected_ano if selected_ano != 'Todos' else 'Consolidado'}"
+            titulo_grafico = f"<b>Cadeia Ampla de Bens (PIM-PF + Atacado) — {selected_ano if selected_ano != 'Todos' else 'Consolidado'}</b>"
         else:
             df_amplo_grp = df_base.groupby("categoria_ibge_ampla", as_index=False).agg(
                 total_valor=("valorTotal", "sum"),
@@ -467,7 +515,7 @@ with tab_setor:
             ).sort_values("total_valor", ascending=False)
             df_amplo_grp["percentual"] = (df_amplo_grp["total_valor"] / total_valor * 100).round(2) if total_valor > 0 else 0
             df_amplo_grp["ticket_medio"] = (df_amplo_grp["total_valor"] / df_amplo_grp["total_contratos"]).round(2) if len(df_amplo_grp) > 0 else 0
-            titulo_grafico = f"Visão Sistêmica Completa por Macrosetores — {selected_ano if selected_ano != 'Todos' else 'Consolidado'}"
+            titulo_grafico = f"<b>Visão Sistêmica Completa por Macrosetores — {selected_ano if selected_ano != 'Todos' else 'Consolidado'}</b>"
 
         c_chart2, c_tbl2 = st.columns([3, 2])
         with c_chart2:
@@ -478,21 +526,19 @@ with tab_setor:
                 orientation="h",
                 text="total_valor",
                 color="categoria_ibge_ampla",
-                labels={"total_valor": "Volume Contratado (R$)", "categoria_ibge_ampla": "Categoria Econômica"},
+                labels={"total_valor": "<b>Volume Contratado (R$)</b>", "categoria_ibge_ampla": "<b>Categoria Econômica</b>"},
                 title=titulo_grafico,
                 color_discrete_map=cores_pim
             )
             fig_ampla.update_traces(
-                texttemplate="R$ %{text:,.2s}",
+                texttemplate="<b>R$ %{text:,.2s}</b>",
                 textposition="outside",
                 showlegend=False
             )
             fig_ampla.update_layout(
-                yaxis={"categoryorder": "total ascending", "title": ""},
-                xaxis={"title": "Volume Financeiro (R$)"},
-                height=420,
-                margin=dict(l=10, r=40, t=40, b=10)
+                yaxis={"categoryorder": "total ascending", "title": ""}
             )
+            aplicar_estilo_grafico(fig_ampla, altura=430)
             st.plotly_chart(fig_ampla, width="stretch")
 
         with c_tbl2:
@@ -533,10 +579,25 @@ with tab_setor:
 
     col_set_chart, col_set_data = st.columns([3, 2])
     with col_set_chart:
-        st.bar_chart(
-            data=df_setor.set_index("setor_economico")["total_valor"],
-            height=340
+        fig_setor = px.bar(
+            df_setor,
+            x="total_valor",
+            y="setor_economico",
+            orientation="h",
+            text="total_valor",
+            color="setor_economico",
+            labels={"total_valor": "<b>Volume Contratado (R$)</b>", "setor_economico": "<b>Setor Tradicional CNAE</b>"},
+            title="<b>Volume por Seção Primária da CNAE</b>",
+            color_discrete_sequence=px.colors.qualitative.Safe
         )
+        fig_setor.update_traces(
+            texttemplate="<b>R$ %{text:,.2s}</b>",
+            textposition="outside",
+            showlegend=False
+        )
+        fig_setor.update_layout(yaxis={"categoryorder": "total ascending", "title": ""})
+        aplicar_estilo_grafico(fig_setor, altura=380)
+        st.plotly_chart(fig_setor, width="stretch")
     with col_set_data:
         st.dataframe(
             df_setor.rename(columns={
