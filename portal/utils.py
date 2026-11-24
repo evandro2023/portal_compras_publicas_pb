@@ -24,12 +24,28 @@ def categorizar_localizacao(uf: str | None, municipio: str | None) -> str:
         return "Fora do Nordeste"
 
 
-def categorizar_setor_cnae(cnae_code: str | int | None) -> str:
+def normalizar_cnae(cnae_code: str | int | float | None) -> str | None:
+    """Normaliza o código CNAE para uma string de 7 dígitos com zeros à esquerda.
+    
+    Trata floats (ex: 163600.0 -> '0163600'), inteiros, strings formatadas ('01.63-6/00')
+    e strings numéricas sem zero à esquerda.
+    """
+    if cnae_code is None or str(cnae_code).strip() in ("", "None", "nan"):
+        return None
+    try:
+        val = int(float(cnae_code))
+        if val <= 0:
+            return None
+        return f"{val:07d}"
+    except (ValueError, TypeError):
+        s = re.sub(r"\D", "", str(cnae_code))
+        return s.zfill(7) if s else None
+
+
+def categorizar_setor_cnae(cnae_code: str | int | float | None) -> str:
     """Mapeia o código CNAE para os 7 Setores Econômicos principais."""
-    if not cnae_code:
-        return "Não Classificado"
-    cnae_str = re.sub(r"\D", "", str(cnae_code))
-    if len(cnae_str) < 2:
+    cnae_str = normalizar_cnae(cnae_code)
+    if not cnae_str or len(cnae_str) < 2:
         return "Não Classificado"
     try:
         divisao = int(cnae_str[:2])
@@ -54,12 +70,10 @@ def categorizar_setor_cnae(cnae_code: str | int | None) -> str:
         return "Outros / Não Classificado"
 
 
-def categorizar_intensidade_tecnologica(cnae_code: str | int | None) -> str:
+def categorizar_intensidade_tecnologica(cnae_code: str | int | float | None) -> str:
     """Mapeia a intensidade tecnológica de acordo com a taxonomia OCDE/IBGE."""
-    if not cnae_code:
-        return "Não Classificado"
-    cnae_str = re.sub(r"\D", "", str(cnae_code))
-    if len(cnae_str) < 2:
+    cnae_str = normalizar_cnae(cnae_code)
+    if not cnae_str or len(cnae_str) < 2:
         return "Não Classificado"
     try:
         divisao = int(cnae_str[:2])
@@ -79,17 +93,16 @@ def categorizar_intensidade_tecnologica(cnae_code: str | int | None) -> str:
     return "Serviços e Outros (Não-Industrial)"
 
 
-def categorizar_ibge_pim_estrito(cnae_code: str | int | None) -> str | None:
+def categorizar_ibge_pim_estrito(cnae_code: str | int | float | None) -> str | None:
     """Classificação da Abordagem 1 (Indústria Fabricante Estrita PIM-PF / Divisões 05 a 33 da CNAE).
     
     Retorna a categoria IBGE se pertencer à indústria fabril, ou None caso contrário.
     """
-    if not cnae_code:
-        return None
-    cnae_str = re.sub(r"\D", "", str(cnae_code))
-    if len(cnae_str) < 2:
+    cnae_str = normalizar_cnae(cnae_code)
+    if not cnae_str or len(cnae_str) < 2:
         return None
     try:
+        cnae_int = int(cnae_str)
         divisao = int(cnae_str[:2])
         grupo = int(cnae_str[:3]) if len(cnae_str) >= 3 else 0
         subclasse_5 = int(cnae_str[:5]) if len(cnae_str) >= 5 else 0
@@ -145,15 +158,13 @@ def categorizar_ibge_pim_estrito(cnae_code: str | int | None) -> str | None:
     return None
 
 
-def categorizar_ibge_cadeia_ampla(cnae_code: str | int | None) -> str:
+def categorizar_ibge_cadeia_ampla(cnae_code: str | int | float | None) -> str:
     """Classificação da Abordagem 2 (Cadeia Ampla de Aquisição de Bens / Indústria + Comércio Distribuidor).
     
     Classifica todas as compras públicas sob as 4 Grandes Categorias de Bens ou macrosetores estruturais.
     """
-    if not cnae_code:
-        return "Não Classificado"
-    cnae_str = re.sub(r"\D", "", str(cnae_code))
-    if len(cnae_str) < 2:
+    cnae_str = normalizar_cnae(cnae_code)
+    if not cnae_str or len(cnae_str) < 2:
         return "Não Classificado"
     try:
         cnae_int = int(cnae_str)

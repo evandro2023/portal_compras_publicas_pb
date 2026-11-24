@@ -339,6 +339,8 @@ with tab_setor:
         df_ab1 = df_base[df_base["categoria_ibge_estrita"].notna()].copy()
         total_ab1_valor = df_ab1["valorTotal"].sum()
         total_ab1_qtd = len(df_ab1)
+        total_ab1_cge = df_ab1["registroCge"].nunique()
+        total_ab1_pncp = total_ab1_qtd - total_ab1_cge
 
         # Total de bens na abordagem 2 para calcular a participação
         df_bens_amplo = df_base[df_base["categoria_ibge_ampla"].isin([
@@ -351,7 +353,12 @@ with tab_setor:
 
         k1, k2, k3, k4 = st.columns(4)
         k1.metric("Volume Direto Fabril", f"R$ {total_ab1_valor:,.2f}")
-        k2.metric("Contratos com Fábricas", f"{total_ab1_qtd:,}")
+        k2.metric(
+            "Contratos com Fábricas",
+            f"{total_ab1_cge:,}",
+            f"{total_ab1_qtd:,} total c/ PNCP",
+            help=f"Total de {total_ab1_cge:,} contratos com registro estadual CGE (conforme tabela do Relatório GT 02) ou {total_ab1_qtd:,} considerando a base integral com registros PNCP."
+        )
         k3.metric("Part. sobre Bens Físicos", f"{pct_sobre_bens:.1f}%")
         k4.metric("Part. no Total Global", f"{pct_sobre_global:.2f}%")
 
@@ -360,6 +367,7 @@ with tab_setor:
         else:
             df_pim_grp = df_ab1.groupby("categoria_ibge_estrita", as_index=False).agg(
                 total_valor=("valorTotal", "sum"),
+                total_contratos_cge=("registroCge", "nunique"),
                 total_contratos=("valorTotal", "count")
             ).sort_values("total_valor", ascending=False)
             df_pim_grp["percentual"] = (df_pim_grp["total_valor"] / total_ab1_valor * 100).round(2)
@@ -397,7 +405,8 @@ with tab_setor:
                     df_pim_grp.rename(columns={
                         "categoria_ibge_estrita": "Categoria PIM-PF",
                         "total_valor": "Valor Total (R$)",
-                        "total_contratos": "Contratos",
+                        "total_contratos_cge": "Contratos (CGE)",
+                        "total_contratos": "Contratos (Total)",
                         "percentual": "Part. Indústria (%)",
                         "ticket_medio": "Ticket Médio (R$)"
                     }),

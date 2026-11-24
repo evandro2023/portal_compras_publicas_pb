@@ -513,3 +513,7 @@ Relatórios:
   - *Solução Aplicada:*
     1. Adicionado `importlib.reload(utils)` e garantia de precedência no `sys.path.insert(0, portal_dir)` na página `5_🏭_Perfil_Produtivo_CNAE.py` com rotina de fallbacks de importação.
     2. Criado `.streamlit/config.toml` habilitando `showErrorDetails = "full"` para que os logs do Streamlit Cloud nunca mascarem o traceback de erros.
+
+- **Reconciliação Exata dos Totais da Abordagem 1 (R$ 326,89 mi vs R$ 431,70 mi):**
+  - *Identificação do Desvio de R$ 104,81 mi (8 contratos agrícolas da SEDAP):* O casting de códigos CNAE em formato ponto-flutuante (`float`) do pandas (ex.: `163600.0`, `141501.0`) gerava truncamento na remoção de caracteres não numéricos (`re.sub`), transformando-os em `1636000` e lendo os 2 primeiros dígitos como Divisão 16 (Madeira) e 14 (Vestuário). Com a implementação de `normalizar_cnae()` garantindo formatação inteira e preenchimento com zeros à esquerda (`zfill(7)`), os contratos voltaram à Divisão 01 (Agropecuária).
+  - *Identificação da Quantidade de Contratos (360 CGE vs 422 Total c/ PNCP):* A contagem de 360 contratos no relatório técnico decorreu do uso de `COUNT(DISTINCT c.registroCge)`, que no SQL padrão desconsidera valores nulos (`NULL`). Os 62 contratos adicionais pertencem à base do PNCP (com valor somado de R$ 2,18 mi, já incluso nos R$ 326,89 mi). O portal agora exibe explicitamente `360 (CGE)` e o total consolidado de `422 (c/ PNCP)`, alinhando 100% dos dados com o relatório do GT.
