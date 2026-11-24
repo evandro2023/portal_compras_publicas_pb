@@ -79,8 +79,77 @@ def categorizar_intensidade_tecnologica(cnae_code: str | int | None) -> str:
     return "Serviços e Outros (Não-Industrial)"
 
 
-def categorizar_grande_setor(cnae_code: str | int | None) -> str:
-    """Classifica o código CNAE nas Grandes Categorias Econômicas do IBGE (CGCE / PIM-PF)."""
+def categorizar_ibge_pim_estrito(cnae_code: str | int | None) -> str | None:
+    """Classificação da Abordagem 1 (Indústria Fabricante Estrita PIM-PF / Divisões 05 a 33 da CNAE).
+    
+    Retorna a categoria IBGE se pertencer à indústria fabril, ou None caso contrário.
+    """
+    if not cnae_code:
+        return None
+    cnae_str = re.sub(r"\D", "", str(cnae_code))
+    if len(cnae_str) < 2:
+        return None
+    try:
+        divisao = int(cnae_str[:2])
+        grupo = int(cnae_str[:3]) if len(cnae_str) >= 3 else 0
+        subclasse_5 = int(cnae_str[:5]) if len(cnae_str) >= 5 else 0
+    except ValueError:
+        return None
+
+    # Restrito às seções B e C (Divisões 05 a 33)
+    if not (5 <= divisao <= 33):
+        return None
+
+    # Bens de Capital
+    if (
+        divisao == 28
+        or (divisao == 26 and grupo in (261, 262, 265))
+        or (divisao == 27 and grupo in (271, 273, 279))
+        or (divisao == 29 and grupo in (292, 293))
+        or (divisao == 30 and grupo in (301, 303, 304, 305))
+        or (divisao == 32 and subclasse_5 == 32501)
+        or divisao == 33
+    ):
+        return "Bens de Capital"
+
+    # Bens Intermediários
+    if (
+        5 <= divisao <= 9
+        or divisao in (16, 17, 22, 23, 24, 25)
+        or (divisao == 20 and grupo not in (206, 207))
+        or (divisao == 29 and grupo == 294)
+        or (divisao == 13 and grupo in (131, 132, 133))
+    ):
+        return "Bens Intermediários"
+
+    # Bens de Consumo Duráveis
+    if (
+        (divisao == 26 and grupo in (263, 264))
+        or (divisao == 27 and grupo == 275)
+        or (divisao == 29 and grupo == 291)
+        or (divisao == 30 and grupo == 309)
+        or divisao == 31
+        or (divisao == 32 and grupo in (321, 322, 323, 324))
+    ):
+        return "Bens de Consumo Duráveis"
+
+    # Bens de Consumo Semiduráveis e Não Duráveis
+    if (
+        divisao in (10, 11, 12, 14, 15, 18, 21)
+        or (divisao == 13 and grupo in (134, 135))
+        or (divisao == 20 and grupo in (206, 207))
+        or (divisao == 32 and grupo == 329)
+    ):
+        return "Bens de Consumo Semiduráveis e Não Duráveis"
+
+    return None
+
+
+def categorizar_ibge_cadeia_ampla(cnae_code: str | int | None) -> str:
+    """Classificação da Abordagem 2 (Cadeia Ampla de Aquisição de Bens / Indústria + Comércio Distribuidor).
+    
+    Classifica todas as compras públicas sob as 4 Grandes Categorias de Bens ou macrosetores estruturais.
+    """
     if not cnae_code:
         return "Não Classificado"
     cnae_str = re.sub(r"\D", "", str(cnae_code))
@@ -94,7 +163,7 @@ def categorizar_grande_setor(cnae_code: str | int | None) -> str:
     except ValueError:
         return "Não Classificado"
 
-    # Bens de Capital
+    # Bens de Capital (Indústria + Comércio de Máquinas e Equipamentos)
     if (
         divisao == 28
         or (divisao == 26 and grupo in (261, 262, 265))
@@ -109,7 +178,7 @@ def categorizar_grande_setor(cnae_code: str | int | None) -> str:
     ):
         return "Bens de Capital"
 
-    # Bens Intermediários
+    # Bens Intermediários (Indústria + Comércio de Autopeças e Insumos)
     if (
         5 <= divisao <= 9
         or divisao in (16, 17, 22, 23, 24, 25)
@@ -121,7 +190,7 @@ def categorizar_grande_setor(cnae_code: str | int | None) -> str:
     ):
         return "Bens Intermediários"
 
-    # Bens de Consumo Duráveis
+    # Bens de Consumo Duráveis (Indústria + Comércio Moveleiro e Eletro)
     if (
         (divisao == 26 and grupo in (263, 264))
         or (divisao == 27 and grupo == 275)
@@ -135,7 +204,7 @@ def categorizar_grande_setor(cnae_code: str | int | None) -> str:
     ):
         return "Bens de Consumo Duráveis"
 
-    # Bens de Consumo Semiduráveis e Não Duráveis
+    # Bens de Consumo Semiduráveis e Não Duráveis (Indústria Farmacêutica/Alimentos + Distribuidoras)
     if (
         divisao in (10, 11, 12, 14, 15, 18, 21)
         or (divisao == 13 and grupo in (134, 135))
@@ -145,9 +214,9 @@ def categorizar_grande_setor(cnae_code: str | int | None) -> str:
     ):
         return "Bens de Consumo Semiduráveis e Não Duráveis"
 
-    # Demais Macrosetores
+    # Macrocategorias Estruturais
     if 41 <= divisao <= 43:
-        return "Construção Civil"
+        return "Construção Civil (Infraestrutura/FBCF)"
     elif 35 <= divisao <= 39:
         return "Serviços Industriais de Utilidade Pública (SIUP)"
     elif 49 <= divisao <= 96:
@@ -155,7 +224,12 @@ def categorizar_grande_setor(cnae_code: str | int | None) -> str:
     elif 1 <= divisao <= 3:
         return "Agropecuária"
     else:
-        return "Outros / Não Classificado"
+        return "Demais Setores"
+
+
+def categorizar_grande_setor(cnae_code: str | int | None) -> str:
+    """Classifica o código CNAE nas Grandes Categorias Econômicas do IBGE (CGCE / PIM-PF)."""
+    return categorizar_ibge_cadeia_ampla(cnae_code)
 
 def get_db_connection():
     """

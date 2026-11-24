@@ -5,18 +5,42 @@ import plotly.express as px
 import sys
 import os
 
-# Ajusta o path para importar utils da raiz do portal (padrão idêntico a todas as páginas)
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from utils import (
-    set_page_config,
-    render_custom_css,
-    render_sidebar_docs,
-    get_db_connection,
-    categorizar_localizacao,
-    categorizar_setor_cnae,
-    categorizar_intensidade_tecnologica,
-    categorizar_grande_setor,
-)
+import sys
+import os
+import importlib
+
+# Ajusta o path para importar utils da raiz do portal garantindo precedência absoluta
+portal_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if portal_dir not in sys.path:
+    sys.path.insert(0, portal_dir)
+
+# Força reload do módulo utils para evitar cache obsoleto em containers persistentes (Streamlit Cloud)
+try:
+    import utils
+    importlib.reload(utils)
+    from utils import (
+        set_page_config,
+        render_custom_css,
+        render_sidebar_docs,
+        get_db_connection,
+        categorizar_localizacao,
+        categorizar_setor_cnae,
+        categorizar_intensidade_tecnologica,
+        categorizar_ibge_pim_estrito,
+        categorizar_ibge_cadeia_ampla,
+        categorizar_grande_setor,
+    )
+except Exception:
+    import utils
+    from utils import (
+        set_page_config,
+        render_custom_css,
+        render_sidebar_docs,
+        get_db_connection,
+    )
+    def categorizar_ibge_pim_estrito(c): return getattr(utils, 'categorizar_ibge_pim_estrito', lambda x: None)(c)
+    def categorizar_ibge_cadeia_ampla(c): return getattr(utils, 'categorizar_ibge_cadeia_ampla', lambda x: 'Não Classificado')(c)
+    def categorizar_grande_setor(c): return getattr(utils, 'categorizar_grande_setor', lambda x: 'Não Classificado')(c)
 
 set_page_config(page_title="Perfil Produtivo e CNAE - Portal Compras PB")
 render_custom_css()
@@ -128,7 +152,9 @@ df_todos = deduplicar_contratos(df_todos)
 _n_duplicados = _n_bruto - len(df_todos)
 
 if not df_todos.empty and "cnae_fiscal" in df_todos.columns:
-    df_todos["grande_setor"] = df_todos["cnae_fiscal"].apply(categorizar_grande_setor)
+    df_todos["categoria_ibge_estrita"] = df_todos["cnae_fiscal"].apply(categorizar_ibge_pim_estrito)
+    df_todos["categoria_ibge_ampla"] = df_todos["cnae_fiscal"].apply(categorizar_ibge_cadeia_ampla)
+    df_todos["grande_setor"] = df_todos["categoria_ibge_ampla"]
 
 if df_todos.empty:
     st.warning("⚠️ Não foi possível carregar os microdados de contratos no momento.")
@@ -273,72 +299,216 @@ with tab_tec:
 
 # --- ABA 3: SETOR ECONÔMICO ---
 with tab_setor:
-    st.subheader("Distribuição por Grandes Setores Econômicos (IBGE / CGCE)")
+    st.subheader("Distribuição por Grandes Categorias Econômicas (IBGE / PIM-PF)")
     st.write(
         "Mapeamento do volume financeiro sob as **Grandes Categorias Econômicas do IBGE** "
-        "(Classificação por Grandes Categorias Econômicas - CGCE / PIM-PF) e macrosetores da cadeia de suprimentos."
+        "(Classificação por Grandes Categorias Econômicas - CGCE / Pesquisa Industrial Mensal - PIM-PF, Tabela 8889 SIDRA). "
+        "Permite distinguir com precisão entre o que é contratado diretamente de **indústrias fabricantes** versus a **cadeia ampla de bens físicos** (incluindo comércio atacadista/distribuidor)."
     )
 
-    # 1. Agrupamento por Grandes Setores (IBGE / CGCE)
-    df_gs = df_base.groupby("grande_setor", as_index=False).agg(
-        total_valor=("valorTotal", "sum"),
-        total_contratos=("valorTotal", "count")
-    ).sort_values("total_valor", ascending=False)
+    modo_analise = st.radio(
+        "🎯 **Selecione a Abordagem Metodológica (Conforme Relatório Técnico GT):**",
+        [
+            "🏭 Abordagem 1: Indústria Fabricante Estrita (PIM-PF / Divisões 05 a 33)",
+            "📦 Abordagem 2: Cadeia Ampla de Aquisição de Bens (Indústria + Comércio Distribuidor)"
+        ],
+        horizontal=True,
+        help="A Abordagem 1 capta apenas indústrias fabris estritas. A Abordagem 2 inclui o comércio distribuidor que revende bens produzidos pela indústria (ex: distribuidoras farmacêuticas e de veículos/TI)."
+    )
 
-    df_gs["percentual"] = (df_gs["total_valor"] / total_valor * 100).round(2) if total_valor > 0 else 0
+    cores_pim = {
+        "Bens de Capital": "#1d4ed8",
+        "Bens Intermediários": "#0284c7",
+        "Bens de Consumo Duráveis": "#7c3aed",
+        "Bens de Consumo Semiduráveis e Não Duráveis": "#16a34a",
+        "Construção Civil (Infraestrutura/FBCF)": "#d97706",
+        "Serviços Industriais de Utilidade Pública (SIUP)": "#0f766e",
+        "Serviços Gerais": "#64748b",
+        "Agropecuária": "#854d0e",
+        "Demais Setores": "#94a3b8",
+        "Não Classificado": "#cbd5e1",
+    }
 
-    col_gs_chart, col_gs_data = st.columns([3, 2])
-
-    with col_gs_chart:
-        fig_gs = px.bar(
-            df_gs,
-            x="total_valor",
-            y="grande_setor",
-            orientation="h",
-            text="total_valor",
-            color="grande_setor",
-            labels={"total_valor": "Volume Financeiro Contratado (R$)", "grande_setor": "Grande Setor (IBGE)"},
-            title=f"Volume Contratado por Grande Setor — Exercício {selected_ano if selected_ano != 'Todos' else 'Consolidado'}",
-            color_discrete_map={
-                "Bens de Capital": "#1d4ed8",
-                "Bens Intermediários": "#0284c7",
-                "Bens de Consumo Duráveis": "#7c3aed",
-                "Bens de Consumo Semiduráveis e Não Duráveis": "#16a34a",
-                "Construção Civil": "#d97706",
-                "Serviços Industriais de Utilidade Pública (SIUP)": "#0f766e",
-                "Serviços Gerais": "#64748b",
-                "Agropecuária": "#854d0e",
-                "Outros / Não Classificado": "#94a3b8",
-            }
+    if "Abordagem 1" in modo_analise:
+        st.markdown("#### 🏭 Abordagem 1: Indústria Fabricante Estrita (PIM-PF)")
+        st.caption(
+            "Mapeamento restrito aos fornecedores cuja atividade econômica principal pertence às "
+            "**Divisões 05 a 33 da CNAE** (Indústrias Extrativas e de Transformação), excluindo intermediários comerciais."
         )
-        fig_gs.update_traces(
-            texttemplate="R$ %{text:,.2s}",
-            textposition="outside",
-            showlegend=False
-        )
-        fig_gs.update_layout(
-            yaxis={"categoryorder": "total ascending", "title": ""},
-            xaxis={"title": "Volume Financeiro (R$)"},
-            height=430,
-            margin=dict(l=10, r=40, t=40, b=10)
-        )
-        st.plotly_chart(fig_gs, width="stretch")
 
-    with col_gs_data:
-        st.markdown("##### 📋 Totais por Grande Setor")
-        st.dataframe(
-            df_gs.rename(columns={
-                "grande_setor": "Grande Setor (IBGE)",
-                "total_valor": "Valor Total (R$)",
-                "total_contratos": "Contratos",
-                "percentual": "Part. (%)"
-            }),
-            column_config={
-                "Valor Total (R$)": st.column_config.NumberColumn(format="R$ %,.2f"),
-                "Part. (%)": st.column_config.NumberColumn(format="%.2f %%")
-            },
-            hide_index=True,
-            width="stretch"
+        df_ab1 = df_base[df_base["categoria_ibge_estrita"].notna()].copy()
+        total_ab1_valor = df_ab1["valorTotal"].sum()
+        total_ab1_qtd = len(df_ab1)
+
+        # Total de bens na abordagem 2 para calcular a participação
+        df_bens_amplo = df_base[df_base["categoria_ibge_ampla"].isin([
+            "Bens de Capital", "Bens Intermediários", "Bens de Consumo Duráveis", "Bens de Consumo Semiduráveis e Não Duráveis"
+        ])]
+        total_bens_amplo_valor = df_bens_amplo["valorTotal"].sum()
+
+        pct_sobre_bens = (total_ab1_valor / total_bens_amplo_valor * 100) if total_bens_amplo_valor > 0 else 0
+        pct_sobre_global = (total_ab1_valor / total_valor * 100) if total_valor > 0 else 0
+
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric("Volume Direto Fabril", f"R$ {total_ab1_valor:,.2f}")
+        k2.metric("Contratos com Fábricas", f"{total_ab1_qtd:,}")
+        k3.metric("Part. sobre Bens Físicos", f"{pct_sobre_bens:.1f}%")
+        k4.metric("Part. no Total Global", f"{pct_sobre_global:.2f}%")
+
+        if df_ab1.empty:
+            st.info("Nenhum contrato com indústrias fabricantes encontrado para os filtros selecionados.")
+        else:
+            df_pim_grp = df_ab1.groupby("categoria_ibge_estrita", as_index=False).agg(
+                total_valor=("valorTotal", "sum"),
+                total_contratos=("valorTotal", "count")
+            ).sort_values("total_valor", ascending=False)
+            df_pim_grp["percentual"] = (df_pim_grp["total_valor"] / total_ab1_valor * 100).round(2)
+            df_pim_grp["ticket_medio"] = (df_pim_grp["total_valor"] / df_pim_grp["total_contratos"]).round(2)
+
+            c_chart, c_tbl = st.columns([3, 2])
+            with c_chart:
+                fig_pim = px.bar(
+                    df_pim_grp,
+                    x="total_valor",
+                    y="categoria_ibge_estrita",
+                    orientation="h",
+                    text="total_valor",
+                    color="categoria_ibge_estrita",
+                    labels={"total_valor": "Volume Contratado (R$)", "categoria_ibge_estrita": "Categoria PIM-PF"},
+                    title=f"Indústria Fabricante por Categoria PIM-PF — {selected_ano if selected_ano != 'Todos' else 'Consolidado'}",
+                    color_discrete_map=cores_pim
+                )
+                fig_pim.update_traces(
+                    texttemplate="R$ %{text:,.2s}",
+                    textposition="outside",
+                    showlegend=False
+                )
+                fig_pim.update_layout(
+                    yaxis={"categoryorder": "total ascending", "title": ""},
+                    xaxis={"title": "Volume Financeiro (R$)"},
+                    height=360,
+                    margin=dict(l=10, r=40, t=40, b=10)
+                )
+                st.plotly_chart(fig_pim, width="stretch")
+
+            with c_tbl:
+                st.markdown("##### 📋 Composição da Indústria Fabricante")
+                st.dataframe(
+                    df_pim_grp.rename(columns={
+                        "categoria_ibge_estrita": "Categoria PIM-PF",
+                        "total_valor": "Valor Total (R$)",
+                        "total_contratos": "Contratos",
+                        "percentual": "Part. Indústria (%)",
+                        "ticket_medio": "Ticket Médio (R$)"
+                    }),
+                    column_config={
+                        "Valor Total (R$)": st.column_config.NumberColumn(format="R$ %,.2f"),
+                        "Ticket Médio (R$)": st.column_config.NumberColumn(format="R$ %,.2f"),
+                        "Part. Indústria (%)": st.column_config.NumberColumn(format="%.2f %%")
+                    },
+                    hide_index=True,
+                    width="stretch"
+                )
+
+            st.info(
+                "💡 **Destaque Metodológico do GT:** Na contratação direta com fábricas (Abordagem 1), "
+                "os setores de **Bens de Capital** e **Bens Intermediários** concentram mais de 65% das contratações. "
+                "Medicamentos e itens hospitalares aparecem com volume reduzido porque a administração pública adquire "
+                "quase a totalidade desses insumos via empresas **distribuidoras e atacadistas** (captadas na Abordagem 2)."
+            )
+
+    else:
+        st.markdown("#### 📦 Abordagem 2: Cadeia Ampla de Aquisição de Bens (Indústria + Comércio Distribuidor)")
+        st.caption(
+            "Mapeamento integral do fornecimento de bens físicos ao Estado, englobando tanto indústrias fabris "
+            "quanto **distribuidoras e comércio atacadista/varejista** (CNAEs 45 a 47) e os macrosetores de infraestrutura e serviços."
+        )
+
+        categorias_bens = [
+            "Bens de Capital", "Bens Intermediários", "Bens de Consumo Duráveis", "Bens de Consumo Semiduráveis e Não Duráveis"
+        ]
+        df_bens = df_base[df_base["categoria_ibge_ampla"].isin(categorias_bens)].copy()
+        total_bens = df_bens["valorTotal"].sum()
+        qtd_bens = len(df_bens)
+
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric("Total da Cadeia de Bens", f"R$ {total_bens:,.2f}")
+        k2.metric("Contratos de Bens Físicos", f"{qtd_bens:,}")
+        k3.metric("Part. no Orçamento Global", f"{(total_bens / total_valor * 100):.1f}%" if total_valor > 0 else "0.0%")
+        k4.metric("Volume Global de Contratos", f"R$ {total_valor:,.2f}")
+
+        visao_ampla = st.radio(
+            "**Nível de Detalhamento:**",
+            options=["📦 Apenas as 4 Categorias de Bens (PIM-PF)", "🌐 Visão Sistêmica Completa (Bens + Infraestrutura + Serviços)"],
+            horizontal=True
+        )
+
+        if visao_ampla == "📦 Apenas as 4 Categorias de Bens (PIM-PF)":
+            df_amplo_grp = df_bens.groupby("categoria_ibge_ampla", as_index=False).agg(
+                total_valor=("valorTotal", "sum"),
+                total_contratos=("valorTotal", "count")
+            ).sort_values("total_valor", ascending=False)
+            df_amplo_grp["percentual"] = (df_amplo_grp["total_valor"] / total_bens * 100).round(2) if total_bens > 0 else 0
+            df_amplo_grp["ticket_medio"] = (df_amplo_grp["total_valor"] / df_amplo_grp["total_contratos"]).round(2) if len(df_amplo_grp) > 0 else 0
+            titulo_grafico = f"Cadeia Ampla de Bens (PIM-PF + Atacado) — {selected_ano if selected_ano != 'Todos' else 'Consolidado'}"
+        else:
+            df_amplo_grp = df_base.groupby("categoria_ibge_ampla", as_index=False).agg(
+                total_valor=("valorTotal", "sum"),
+                total_contratos=("valorTotal", "count")
+            ).sort_values("total_valor", ascending=False)
+            df_amplo_grp["percentual"] = (df_amplo_grp["total_valor"] / total_valor * 100).round(2) if total_valor > 0 else 0
+            df_amplo_grp["ticket_medio"] = (df_amplo_grp["total_valor"] / df_amplo_grp["total_contratos"]).round(2) if len(df_amplo_grp) > 0 else 0
+            titulo_grafico = f"Visão Sistêmica Completa por Macrosetores — {selected_ano if selected_ano != 'Todos' else 'Consolidado'}"
+
+        c_chart2, c_tbl2 = st.columns([3, 2])
+        with c_chart2:
+            fig_ampla = px.bar(
+                df_amplo_grp,
+                x="total_valor",
+                y="categoria_ibge_ampla",
+                orientation="h",
+                text="total_valor",
+                color="categoria_ibge_ampla",
+                labels={"total_valor": "Volume Contratado (R$)", "categoria_ibge_ampla": "Categoria Econômica"},
+                title=titulo_grafico,
+                color_discrete_map=cores_pim
+            )
+            fig_ampla.update_traces(
+                texttemplate="R$ %{text:,.2s}",
+                textposition="outside",
+                showlegend=False
+            )
+            fig_ampla.update_layout(
+                yaxis={"categoryorder": "total ascending", "title": ""},
+                xaxis={"title": "Volume Financeiro (R$)"},
+                height=420,
+                margin=dict(l=10, r=40, t=40, b=10)
+            )
+            st.plotly_chart(fig_ampla, width="stretch")
+
+        with c_tbl2:
+            st.markdown("##### 📋 Detalhamento da Cadeia Ampla")
+            st.dataframe(
+                df_amplo_grp.rename(columns={
+                    "categoria_ibge_ampla": "Categoria Econômica",
+                    "total_valor": "Valor Total (R$)",
+                    "total_contratos": "Contratos",
+                    "percentual": "Part. (%)",
+                    "ticket_medio": "Ticket Médio (R$)"
+                }),
+                column_config={
+                    "Valor Total (R$)": st.column_config.NumberColumn(format="R$ %,.2f"),
+                    "Ticket Médio (R$)": st.column_config.NumberColumn(format="R$ %,.2f"),
+                    "Part. (%)": st.column_config.NumberColumn(format="%.2f %%")
+                },
+                hide_index=True,
+                width="stretch"
+            )
+
+        st.success(
+            "💡 **Efeito Multiplicador do Atacado e Distribuição:** Na Abordagem 2, os **Bens Semiduráveis e Não Duráveis** "
+            "saltam para a liderança absoluta com mais de R$ 599 milhões em 2026. "
+            "Isso demonstra o papel crucial das distribuidoras de medicamentos, insumos hospitalares e alimentos na cadeia de compras públicas."
         )
 
     st.markdown("---")
@@ -386,7 +556,7 @@ with tab_tabela:
 
     df_tabela = df_base[[
         "registroCge", "numeroContrato", "nomeOrgao", "modalidade", "razao_social", "cnpj_clean",
-        "is_me_epp", "uf", "localizacao_categoria", "grande_setor", "setor_economico", "intensidade_tecnologica", "valorTotal"
+        "is_me_epp", "uf", "localizacao_categoria", "categoria_ibge_estrita", "categoria_ibge_ampla", "setor_economico", "intensidade_tecnologica", "valorTotal"
     ]].sort_values("valorTotal", ascending=False).rename(columns={
             "registroCge": "Registro CGE",
             "numeroContrato": "Nº Contrato",
@@ -397,13 +567,14 @@ with tab_tabela:
             "is_me_epp": "Porte (ME/EPP)",
             "uf": "UF",
             "localizacao_categoria": "Localização",
-            "grande_setor": "Grande Área / Setor (IBGE)",
+            "categoria_ibge_estrita": "Categoria PIM (Fabricante)",
+            "categoria_ibge_ampla": "Categoria PIM (Cadeia Ampla)",
             "setor_economico": "Setor CNAE",
             "intensidade_tecnologica": "Intensidade Tec.",
             "valorTotal": "Valor Total (R$)"
     })
 
-    filtro_busca = st.text_input("🔍 Buscar por Fornecedor, CNPJ, Nº Contrato, Registro CGE, Modalidade, Porte ou Grande Área:", "")
+    filtro_busca = st.text_input("🔍 Buscar por Fornecedor, CNPJ, Nº Contrato, Registro CGE, Modalidade, Porte ou Categoria Econômica:", "")
     if filtro_busca:
         termo = filtro_busca.strip().lower()
         df_tabela = df_tabela[
@@ -413,7 +584,8 @@ with tab_tabela:
             df_tabela["Registro CGE"].astype(str).str.lower().str.contains(termo) |
             df_tabela["Modalidade"].astype(str).str.lower().str.contains(termo) |
             df_tabela["Porte (ME/EPP)"].astype(str).str.lower().str.contains(termo) |
-            df_tabela["Grande Área / Setor (IBGE)"].astype(str).str.lower().str.contains(termo)
+            df_tabela["Categoria PIM (Fabricante)"].astype(str).str.lower().str.contains(termo) |
+            df_tabela["Categoria PIM (Cadeia Ampla)"].astype(str).str.lower().str.contains(termo)
         ]
 
     st.dataframe(

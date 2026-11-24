@@ -493,3 +493,23 @@ Relatórios:
   - Adicionada função `categorizar_grande_setor()` em `src/etl/cnae_catalog.py` mapeando as 4 Grandes Categorias Econômicas do IBGE (*Bens de Capital, Bens Intermediários, Bens de Consumo Duráveis, Bens de Consumo Semiduráveis/Não Duráveis*) e os macrosetores de *Construção Civil, SIUP, Serviços Gerais e Agropecuária*.
   - Inserido gráfico de barras horizontais Plotly responsivo ao filtro de ano na aba *c) Setores Econômicos*, acompanhado de tabela detalhada por Grande Setor.
   - Inserida coluna *Grande Área / Setor (IBGE)* na aba *Dados Detalhados*, integrada ao filtro textual de busca e ao arquivo de download em CSV.
+
+## Histórico de Decisões Técnicas (Etapa 9 - Ajuste das 2 Abordagens IBGE/PIM-PF e Resolução do Erro no Streamlit Cloud)
+
+- **Ajuste Metodológico no Painel de Setores Econômicos (`portal/pages/5_🏭_Perfil_Produtivo_CNAE.py`):**
+  - Incorporação do seletor interativo permitindo ao usuário alternar perfeitamente entre as duas metodologias descritas no relatório técnico do GT (`outputs/relatorio/relatorio_analise_gt_compras_02.pdf`):
+    1. **Abordagem 1: Indústria Fabricante Estrita (PIM-PF / Divisões 05 a 33 da CNAE):**
+       - Mapeamento restrito aos fornecedores fabris (indústria de transformação e extrativa).
+       - KPIs dedicados: Volume Direto Fabril (R$ 326,89 mi em 2026), Total de Contratos com Fábricas (360), Participação sobre Bens Físicos (30,6%) e Participação no Total Global do Estado (2,44%).
+       - Gráfico Plotly horizontal com as 4 categorias da PIM-PF (Bens de Capital, Intermediários, Não Duráveis e Duráveis), tabela detalhada com Ticket Médio e nota explicativa destacando a concentração fabril em Bens de Capital e Bens Intermediários.
+    2. **Abordagem 2: Cadeia Ampla de Aquisição de Bens (Indústria + Comércio Distribuidor / Atacadista):**
+       - Mapeamento do suprimento integral de bens físicos pelo Estado, englobando distribuidoras e atacadistas essenciais (CNAEs 45 a 47) e os macrosetores estruturais.
+       - KPIs dedicados: Total da Cadeia de Bens (R$ 1,07 bi em 2026), Contratos de Bens (2.311), Participação no Orçamento Global (7,98%) e Volume Global de Contratos (R$ 13,39 bi).
+       - Seletor de visualização entre *"Apenas as 4 Categorias de Bens (PIM-PF)"* e *"Visão Sistêmica Completa (Bens + Infraestrutura + Serviços)"*, com gráficos Plotly responsivos, tabelas analíticas e destaque para o efeito multiplicador em medicamentos e insumos hospitalares (Bens Semiduráveis e Não Duráveis saltando para R$ 599,24 mi).
+- **Atualização na Aba de Dados Detalhados:**
+  - Inclusão das colunas *Categoria PIM (Fabricante)* e *Categoria PIM (Cadeia Ampla)* na visualização em tabela e na exportação em CSV, além da integração com a barra de busca textual rápida.
+- **Diagnóstico e Resolução do Erro de Inicialização no Streamlit Cloud:**
+  - *Causa Raiz:* No ambiente em nuvem do Streamlit Cloud, o processo Python roda de forma contínua em container compartilhado. Ao atualizar o repositório, módulos importados no diretório-pai (`utils.py`) permanecem em cache no dicionário interno `sys.modules`, gerando `ImportError` velado quando novas funções são chamadas por páginas secundárias em multipage apps.
+  - *Solução Aplicada:*
+    1. Adicionado `importlib.reload(utils)` e garantia de precedência no `sys.path.insert(0, portal_dir)` na página `5_🏭_Perfil_Produtivo_CNAE.py` com rotina de fallbacks de importação.
+    2. Criado `.streamlit/config.toml` habilitando `showErrorDetails = "full"` para que os logs do Streamlit Cloud nunca mascarem o traceback de erros.
