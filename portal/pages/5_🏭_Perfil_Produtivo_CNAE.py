@@ -1,47 +1,22 @@
-import sys
-import os
-from pathlib import Path
 import streamlit as st
 import pandas as pd
 import duckdb
 import plotly.express as px
+import sys
+import os
 
-# Garante que o diretório raiz e o portal estejam no sys.path em qualquer ambiente (local ou Streamlit Cloud)
-_THIS_DIR = Path(__file__).resolve().parent
-_PORTAL_DIR = _THIS_DIR.parent
-_PROJECT_ROOT = _PORTAL_DIR.parent
-
-for _p in [str(_PORTAL_DIR), str(_PROJECT_ROOT), str(_PROJECT_ROOT / "src"), str(_PROJECT_ROOT / "src" / "etl")]:
-    if _p not in sys.path:
-        sys.path.insert(0, _p)
-
-try:
-    from utils import set_page_config, render_custom_css, render_sidebar_docs, get_db_connection
-except (ImportError, ModuleNotFoundError):
-    from portal.utils import set_page_config, render_custom_css, render_sidebar_docs, get_db_connection
-
-try:
-    from cnae_catalog import (
-        categorizar_localizacao,
-        categorizar_setor_cnae,
-        categorizar_intensidade_tecnologica,
-        categorizar_grande_setor,
-    )
-except (ImportError, ModuleNotFoundError):
-    try:
-        from portal.cnae_catalog import (
-            categorizar_localizacao,
-            categorizar_setor_cnae,
-            categorizar_intensidade_tecnologica,
-            categorizar_grande_setor,
-        )
-    except (ImportError, ModuleNotFoundError):
-        from src.etl.cnae_catalog import (
-            categorizar_localizacao,
-            categorizar_setor_cnae,
-            categorizar_intensidade_tecnologica,
-            categorizar_grande_setor,
-        )
+# Ajusta o path para importar utils da raiz do portal (padrão idêntico a todas as páginas)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from utils import (
+    set_page_config,
+    render_custom_css,
+    render_sidebar_docs,
+    get_db_connection,
+    categorizar_localizacao,
+    categorizar_setor_cnae,
+    categorizar_intensidade_tecnologica,
+    categorizar_grande_setor,
+)
 
 set_page_config(page_title="Perfil Produtivo e CNAE - Portal Compras PB")
 render_custom_css()
